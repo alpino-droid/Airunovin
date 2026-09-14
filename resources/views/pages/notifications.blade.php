@@ -4,20 +4,20 @@
 
 @section('content')
     @php
-        $mode = Request::segment(2) ?? 'all';
+        $mode = $mode ?? 'all';
 
         $sellerNotifications = [
-            ['title' => 'Pembelian baru', 'type' => 'Penjualan', 'typeClass' => 'bg-success-subtle text-success', 'message' => 'Produk "Rantai Matic" berhasil dibeli oleh pelanggan.', 'time' => '2 menit lalu', 'unread' => true],
-            ['title' => 'Pesanan dikirim', 'type' => 'Pengiriman', 'typeClass' => 'bg-warning-subtle text-warning', 'message' => 'Status pengiriman untuk order #MK-2048 sudah diperbarui.', 'time' => '1 jam lalu', 'unread' => true],
-            ['title' => 'Stok menipis', 'type' => 'Inventaris', 'typeClass' => 'bg-danger-subtle text-danger', 'message' => 'Stok produk "Ban Dalam 14 inch" tersisa 3 unit.', 'time' => '3 jam lalu', 'unread' => false],
-            ['title' => 'Review pelanggan', 'type' => 'Feedback', 'typeClass' => 'bg-info-subtle text-info', 'message' => 'Ada review baru dengan rating 5 dari pembeli.', 'time' => '1 hari lalu', 'unread' => false],
+            ['title' => 'Event berhasil dipublikasikan', 'type' => 'Event', 'typeClass' => 'bg-success-subtle text-success', 'message' => 'Event Anda sudah tampil dan dapat ditemukan oleh komunitas.', 'time' => '2 menit lalu', 'unread' => true],
+            ['title' => 'Produk baru ditambahkan', 'type' => 'Marketplace', 'typeClass' => 'bg-warning-subtle text-warning', 'message' => 'Produk Anda berhasil ditambahkan ke marketplace.', 'time' => '1 jam lalu', 'unread' => true],
+            ['title' => 'Pendaftaran club diterima', 'type' => 'Club', 'typeClass' => 'bg-danger-subtle text-danger', 'message' => 'Data club Anda berhasil disimpan dan menunggu interaksi komunitas.', 'time' => '3 jam lalu', 'unread' => false],
+            ['title' => 'Profil diperbarui', 'type' => 'Akun', 'typeClass' => 'bg-info-subtle text-info', 'message' => 'Informasi profil Anda berhasil diperbarui.', 'time' => '1 hari lalu', 'unread' => false],
         ];
 
         $buyerNotifications = [
-            ['title' => 'Pembayaran berhasil', 'type' => 'Transaksi', 'typeClass' => 'bg-success-subtle text-success', 'message' => 'Pembayaran untuk produk "Helm Fullface" berhasil diproses.', 'time' => '10 menit lalu', 'unread' => true],
-            ['title' => 'Barang dikirim', 'type' => 'Pengiriman', 'typeClass' => 'bg-primary-subtle text-primary', 'message' => 'Pesanan Anda sedang dikirim dengan nomor resi JNE-2048.', 'time' => '2 jam lalu', 'unread' => true],
-            ['title' => 'Promo terbaru', 'type' => 'Promo', 'typeClass' => 'bg-warning-subtle text-warning', 'message' => 'Diskon 20% untuk sparepart motor hari ini.', 'time' => '5 jam lalu', 'unread' => false],
-            ['title' => 'Pesanan diterima', 'type' => 'Status', 'typeClass' => 'bg-secondary-subtle text-secondary', 'message' => 'Barang telah diterima dengan kondisi baik.', 'time' => '2 hari lalu', 'unread' => false],
+            ['title' => 'Event baru di sekitar Anda', 'type' => 'Event', 'typeClass' => 'bg-success-subtle text-success', 'message' => 'Ada event baru yang mungkin sesuai dengan minat Anda.', 'time' => '10 menit lalu', 'unread' => true],
+            ['title' => 'Produk marketplace tersedia', 'type' => 'Marketplace', 'typeClass' => 'bg-primary-subtle text-primary', 'message' => 'Produk baru dari komunitas telah tersedia untuk dilihat.', 'time' => '2 jam lalu', 'unread' => true],
+            ['title' => 'Club baru bergabung', 'type' => 'Club', 'typeClass' => 'bg-warning-subtle text-warning', 'message' => 'Temukan club baru dan perluas jaringan komunitas Anda.', 'time' => '5 jam lalu', 'unread' => false],
+            ['title' => 'Informasi akun', 'type' => 'Akun', 'typeClass' => 'bg-secondary-subtle text-secondary', 'message' => 'Lengkapi profil Anda agar lebih mudah terhubung dengan komunitas.', 'time' => '2 hari lalu', 'unread' => false],
         ];
 
         $allNotifications = array_merge($sellerNotifications, $buyerNotifications);

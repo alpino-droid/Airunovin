@@ -95,18 +95,22 @@
                      <a href="{{ route('product.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Tambah produk</a>
                   </div>
                   <div class="row g-3">
-                     <div class="col-6">
-                        <div class="border rounded overflow-hidden h-100">
-                           <div class="ratio ratio-1x1 bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto produk</div>
-                           <div class="p-3"><strong class="d-block">Airsoft Tactical Vest</strong><small class="text-muted">Rp450.000</small></div>
+                     @forelse ($products as $product)
+                        <div class="col-6 col-md-4">
+                           <div class="border rounded overflow-hidden h-100">
+                              <div class="ratio ratio-1x1 bg-light d-flex align-items-center justify-content-center">
+                                 @if ($product->gambar)
+                                    <img src="{{ asset('storage/' . $product->gambar) }}" alt="{{ $product->nama }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                                 @else
+                                    <img src="{{ asset('img/balnkLogo.png') }}" alt="{{ $product->nama }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
+                                 @endif
+                              </div>
+                              <div class="p-3"><strong class="d-block text-truncate" title="{{ $product->nama }}">{{ $product->nama }}</strong><small class="text-muted">Rp{{ number_format($product->harga, 0, ',', '.') }}</small></div>
+                           </div>
                         </div>
-                     </div>
-                     <div class="col-6">
-                        <div class="border rounded overflow-hidden h-100">
-                           <div class="ratio ratio-1x1 bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto produk</div>
-                           <div class="p-3"><strong class="d-block">Red Dot Sight 1x20</strong><small class="text-muted">Rp350.000</small></div>
-                        </div>
-                     </div>
+                     @empty
+                        <div class="col-12"><p class="text-muted mb-0">Belum ada produk. Tambahkan produk pertama Anda.</p></div>
+                     @endforelse
                   </div>
                </div>
             </section>

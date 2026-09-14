@@ -12,6 +12,8 @@
                 <a href="{{ route('event') }}" class="app-footer-link">{{ __('Event') }}</a>
                 <a href="{{ route('club') }}" class="app-footer-link">{{ __('Club') }}</a>
                 <a href="{{ route('marketplace') }}" class="app-footer-link">{{ __('Marketplace') }}</a>
+                <a href="{{ route('about') }}" class="app-footer-link">Tentang Kami</a>
+                <a href="{{ route('privacy') }}" class="app-footer-link">Kebijakan Privasi</a>
             </div>
             <div class="col-6 col-lg-4">
                 <h2 class="app-footer-title">{{ __('Stay connected') }}</h2>

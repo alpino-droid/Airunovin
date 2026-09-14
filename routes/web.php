@@ -9,11 +9,14 @@ use App\Http\Controllers\UserController;
 // ============ ROUTE HALAMAN PUBLIK ============
 Route::get('/', [EventController::class, 'home'])->name('home');
 Route::get('/event', [EventController::class, 'event'])->name('event');
-Route::get('/event/nama', [EventController::class, 'isiEvent'])->name('isiEvent');
+Route::middleware('auth')->get('/event/create', [EventController::class, 'eventCreate'])->name('event.create');
+Route::get('/event/{event}', [EventController::class, 'isiEvent'])->whereNumber('event')->name('isiEvent');
 Route::get('/marketplace', [HalamanController::class, 'marketplace'])->name('marketplace');
 Route::get('/marketplace/jenis_barang/nama_barang', [HalamanController::class, 'isiMarketplace'])->name('isiMarketplace');
 Route::get('/club', [ClubController::class, 'home'])->name('club');
 Route::get('/club/detail', [ClubController::class, 'isiClub'])->name('isiClub');
+Route::view('/tentang', 'pages.about')->name('about');
+Route::view('/kebijakan-privasi', 'pages.privacy')->name('privacy');
 
 // ============ ROUTE ADMIN (FRONT-END) ============
 Route::get('/admin/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
@@ -46,16 +49,16 @@ Route::get('/notifikasi/pembeli', function () {
 
 Route::get('/notifikasi/detail/{mode}/{index}', function (string $mode, int $index) {
     $sellerNotifications = [
-        ['title' => 'Pembelian baru', 'type' => 'Penjualan', 'message' => 'Produk "Rantai Matic" berhasil dibeli oleh pelanggan.', 'time' => '2 menit lalu'],
-        ['title' => 'Pesanan dikirim', 'type' => 'Pengiriman', 'message' => 'Status pengiriman untuk order #MK-2048 sudah diperbarui.', 'time' => '1 jam lalu'],
-        ['title' => 'Stok menipis', 'type' => 'Inventaris', 'message' => 'Stok produk "Ban Dalam 14 inch" tersisa 3 unit.', 'time' => '3 jam lalu'],
-        ['title' => 'Review pelanggan', 'type' => 'Feedback', 'message' => 'Ada review baru dengan rating 5 dari pembeli.', 'time' => '1 hari lalu'],
+        ['title' => 'Event berhasil dipublikasikan', 'type' => 'Event', 'message' => 'Event Anda sudah tampil dan dapat ditemukan oleh komunitas.', 'time' => '2 menit lalu'],
+        ['title' => 'Produk baru ditambahkan', 'type' => 'Marketplace', 'message' => 'Produk Anda berhasil ditambahkan ke marketplace.', 'time' => '1 jam lalu'],
+        ['title' => 'Pendaftaran club diterima', 'type' => 'Club', 'message' => 'Data club Anda berhasil disimpan dan menunggu interaksi komunitas.', 'time' => '3 jam lalu'],
+        ['title' => 'Profil diperbarui', 'type' => 'Akun', 'message' => 'Informasi profil Anda berhasil diperbarui.', 'time' => '1 hari lalu'],
     ];
     $buyerNotifications = [
-        ['title' => 'Pembayaran berhasil', 'type' => 'Transaksi', 'message' => 'Pembayaran untuk produk "Helm Fullface" berhasil diproses.', 'time' => '10 menit lalu'],
-        ['title' => 'Barang dikirim', 'type' => 'Pengiriman', 'message' => 'Pesanan Anda sedang dikirim dengan nomor resi JNE-2048.', 'time' => '2 jam lalu'],
-        ['title' => 'Promo terbaru', 'type' => 'Promo', 'message' => 'Diskon 20% untuk sparepart motor hari ini.', 'time' => '5 jam lalu'],
-        ['title' => 'Pesanan diterima', 'type' => 'Status', 'message' => 'Barang telah diterima dengan kondisi baik.', 'time' => '2 hari lalu'],
+        ['title' => 'Event baru di sekitar Anda', 'type' => 'Event', 'message' => 'Ada event baru yang mungkin sesuai dengan minat Anda.', 'time' => '10 menit lalu'],
+        ['title' => 'Produk marketplace tersedia', 'type' => 'Marketplace', 'message' => 'Produk baru dari komunitas telah tersedia untuk dilihat.', 'time' => '2 jam lalu'],
+        ['title' => 'Club baru bergabung', 'type' => 'Club', 'message' => 'Temukan club baru dan perluas jaringan komunitas Anda.', 'time' => '5 jam lalu'],
+        ['title' => 'Informasi akun', 'type' => 'Akun', 'message' => 'Lengkapi profil Anda agar lebih mudah terhubung dengan komunitas.', 'time' => '2 hari lalu'],
     ];
 
     $items = $mode === 'penjual' ? $sellerNotifications : ($mode === 'pembeli' ? $buyerNotifications : array_merge($sellerNotifications, $buyerNotifications));
@@ -93,8 +96,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/dashboardClub/{id}', [ClubController::class, 'clubDestroy'])->name('dashboardClub.destroy');
     
     // Event & Profil
-    Route::get('/event/create', [EventController::class, 'eventCreate'])->name('event.create');
+    Route::get('/event/{event}/edit', [EventController::class, 'eventEdit'])->whereNumber('event')->name('event.edit');
     Route::post('/event/store', [EventController::class, 'eventStore'])->name('event.store');
+    Route::put('/event/{event}', [EventController::class, 'eventUpdate'])->whereNumber('event')->name('event.update');
+    Route::delete('/event/{event}', [EventController::class, 'eventDestroy'])->whereNumber('event')->name('event.destroy');
     Route::get('/profil', [UserController::class, 'profil'])->name('profil');
     Route::put('/profil/update', [UserController::class, 'updateProfil'])->name('profil.update');
 });

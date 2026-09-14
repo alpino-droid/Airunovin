@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -26,14 +27,16 @@ class UserController extends Controller
     {
         if (!Auth::check()) return redirect()->route('login');
         $user = Auth::user();
-        return view('pages.dashboard', compact('user'));
+        $events = event::where('id_user', Auth::id())->latest('created_at')->get();
+        return view('pages.dashboard', compact('user', 'events'));
     }
 
     public function profil()
     {
         if (!Auth::check()) return redirect()->route('login');
         $user = Auth::user();
-        return view('pages.dashboard', compact('user'));
+        $events = event::where('id_user', Auth::id())->latest('created_at')->get();
+        return view('pages.dashboard', compact('user', 'events'));
     }
 
     public function updateProfil(Request $request)

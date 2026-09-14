@@ -10,11 +10,22 @@ use Illuminate\Support\Facades\Storage;
 
 class ClubController extends Controller
 {
-    public function home()
+    public function home(Request $request)
     {
-        $clubs = Club::latest()->get();
+        $provinsi = Provinsi::orderBy('provinsi')->get();
+        $query = Club::query();
 
-        return view('pages.club', compact('clubs'));
+        if ($request->filled('province')) {
+            $query->where('id_provinsi', $request->integer('province'));
+        }
+        if ($request->filled('city')) {
+            $query->where('city', $request->string('city'));
+        }
+
+        $clubs = $query->latest()->get();
+        $cities = Club::query()->whereNotNull('city')->distinct()->orderBy('city')->pluck('city');
+
+        return view('pages.club', compact('clubs', 'provinsi', 'cities'));
     }
 
     public function isiClub()
@@ -24,9 +35,7 @@ class ClubController extends Controller
 
     public function club()
     {
-        $clubs = Club::latest()->get();
-
-        return view('pages.club', compact('clubs'));
+        return $this->home(request());
     }
 
     public function detail($id)

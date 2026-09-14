@@ -224,33 +224,44 @@
                      <h3 class="h5 fw-bold mb-1">{{ __('Events created') }}</h3>
                      <p class="text-muted small mb-0">{{ __('Manage the events you publish.') }}</p>
                   </div>
-                  <span class="badge bg-secondary">2 event</span>
+                  <span class="badge bg-secondary">{{ $events->count() }} event</span>
                </div>
 
                <div class="d-flex flex-column gap-3">
-                  <article class="border rounded p-3">
-                     <div class="row g-3 align-items-center">
-                        <div class="col-4"><div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center text-muted small text-center"><img src="{{ asset('img/imgStatik/PosterEvent/G.S.Ps1.jpg') }}" alt=""></div></div>
-                        <div class="col-8">
-                           <div class="d-flex justify-content-between gap-2 mb-2"><strong>Merah Putih Airsoft Challenge 2026</strong><span class="badge bg-success align-self-start">Aktif</span></div>
-                           <small class="text-muted d-block mb-2"><i class="fas fa-calendar-alt me-1"></i>21–23 Agustus 2026</small>
-                           <small class="text-muted d-block"><i class="fas fa-map-marker-alt me-1"></i>Surabaya</small>
-                           <a href="{{ route('isiEvent') }}" class="btn btn-outline-primary btn-sm mt-3">{{ __('View Event') }}</a>
+                  @forelse($events as $event)
+                     <article class="border rounded p-3">
+                        <div class="row g-3 align-items-center">
+                           <div class="col-4">
+                              <div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center text-muted small text-center overflow-hidden">
+                                 @if($event->poster)
+                                    <img src="{{ asset('storage/' . $event->poster[0]) }}" alt="Poster {{ $event->nama }}" class="w-100 h-100 object-fit-cover">
+                                 @else
+                                    <span>Foto event</span>
+                                 @endif
+                              </div>
+                           </div>
+                           <div class="col-8">
+                              <div class="d-flex justify-content-between gap-2 mb-2">
+                                 <strong>{{ $event->nama }}</strong>
+                                 <span class="badge bg-success align-self-start">Aktif</span>
+                              </div>
+                              <small class="text-muted d-block mb-2"><i class="fas fa-calendar-alt me-1"></i>{{ $event->tanggal?->format('d F Y') }}</small>
+                              <small class="text-muted d-block"><i class="fas fa-map-marker-alt me-1"></i>{{ $event->kota }}</small>
+                              <div class="d-flex flex-wrap gap-2 mt-3">
+                                 <a href="{{ route('isiEvent', $event) }}" class="btn btn-outline-primary btn-sm">Lihat</a>
+                                 <a href="{{ route('event.edit', $event) }}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                                 <form action="{{ route('event.destroy', $event) }}" method="POST" onsubmit="return confirm('Hapus event ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
+                                 </form>
+                              </div>
+                           </div>
                         </div>
-                     </div>
-                  </article>
-
-                  <article class="border rounded p-3">
-                     <div class="row g-3 align-items-center">
-                        <div class="col-4"><div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center text-muted small text-center">Foto event</div></div>
-                        <div class="col-8">
-                           <div class="d-flex justify-content-between gap-2 mb-2"><strong>Kompetisi Airsoft Weekend</strong><span class="badge bg-warning text-dark align-self-start">Draft</span></div>
-                           <small class="text-muted d-block mb-2"><i class="fas fa-calendar-alt me-1"></i>12 September 2026</small>
-                           <small class="text-muted d-block"><i class="fas fa-map-marker-alt me-1"></i>Jakarta</small>
-                           <a href="{{ route('event.create') }}" class="btn btn-outline-primary btn-sm mt-3">{{ __('Edit Draft') }}</a>
-                        </div>
-                     </div>
-                  </article>
+                     </article>
+                  @empty
+                     <div class="text-center text-muted border rounded p-4">Belum ada event yang dibuat.</div>
+                  @endforelse
                </div>
             </div>
          </section>

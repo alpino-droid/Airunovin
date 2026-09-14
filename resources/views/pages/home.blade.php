@@ -53,7 +53,7 @@
         <div class="row justify-content-center g-2">
             @forelse($eventsTerbaru as $evt)
                 <div class="col-auto mb-5">
-                    <a href="{{ route('isiEvent') }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
                                 @if($evt->poster && count($evt->poster) > 0)
@@ -98,7 +98,7 @@
         <div class="row justify-content-center g-2">
             @forelse($events as $evt)
                 <div class="col-auto mb-5">
-                    <a href="{{ route('isiEvent') }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
                                 @if($evt->poster && count($evt->poster) > 0)

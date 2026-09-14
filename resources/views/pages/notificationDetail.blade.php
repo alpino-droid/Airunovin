@@ -5,7 +5,7 @@
 @section('content')
 <div class="container py-4 py-lg-5">
     <nav aria-label="Breadcrumb" class="mb-4">
-        <a href="{{ route('notifications', ['mode' => $mode]) }}" class="text-decoration-none">Notifikasi</a>
+        <a href="{{ $mode === 'penjual' ? route('notifications.seller') : ($mode === 'pembeli' ? route('notifications.buyer') : route('notifications')) }}" class="text-decoration-none">Notifikasi</a>
         <span class="text-muted mx-2">/</span>
         <span class="text-muted">Lihat detail</span>
     </nav>
@@ -24,7 +24,7 @@
 
                     <p class="text-muted mb-4">{{ $item['message'] }}</p>
 
-                    <a href="{{ route('notifications', ['mode' => $mode]) }}" class="btn btn-outline-primary">
+                    <a href="{{ $mode === 'penjual' ? route('notifications.seller') : ($mode === 'pembeli' ? route('notifications.buyer') : route('notifications')) }}" class="btn btn-outline-primary">
                         Kembali ke notifikasi
                     </a>
                 </div>

@@ -5,20 +5,38 @@
 @section('content')
 @php
     $maxPoster = \App\Models\event::MAX_POSTERS;
+   $isEdit = isset($event);
+   $formAction = $isEdit ? route('event.update', $event) : route('event.store');
+   $existingPosters = $isEdit ? $event->poster : [];
 @endphp
 
 <div class="container text-start pt-3">
    <div class="mt-5 bg-light row p-3">
       <div class="col-md-12 mt-3" style="overflow: visible;">
-         <form class="row g-3" action="{{ route('event.store') }}" method="POST" enctype="multipart/form-data" style="overflow: visible;">
+         <form class="row g-3" action="{{ $formAction }}" method="POST" enctype="multipart/form-data" style="overflow: visible;">
             @csrf
+            @if($isEdit)
+               @method('PUT')
+            @endif
 
             <div class="col-12 d-flex justify-content-between align-items-center mb-3">
-               <h4 class="mb-0">Poster Event</h4>
+               <h4 class="mb-0">{{ $isEdit ? 'Edit Event' : 'Poster Event' }}</h4>
                <span class="badge bg-light text-dark border">Maksimal {{ $maxPoster }} poster</span>
             </div>
 
             <div id="cardContainer" class="col-12 d-flex flex-wrap">
+               @forelse($existingPosters as $index => $poster)
+               <div class="col-md-3 mt-2 mb-3 card-item" data-card-id="{{ $index + 1 }}">
+                  <div class="card" style="width: 18rem;">
+                     <img src="{{ asset('storage/' . $poster) }}" class="card-img-top" alt="Poster event">
+                     <div class="card-body">
+                        <button type="button" class="btn btn-outline-primary btn-upload" data-id="{{ $index + 1 }}">Ganti File</button>
+                        <input type="file" id="fileInputButton{{ $index + 1 }}" name="poster[]" class="d-none poster-input" accept="image/*">
+                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 btn-remove" data-id="{{ $index + 1 }}">Hapus</button>
+                     </div>
+                  </div>
+               </div>
+               @empty
                <div class="col-md-3 mt-2 mb-3 card-item" data-card-id="1">
                   <div class="card" style="width: 18rem;">
                      <img src="{{ asset('img/balnkLogo.png') }}" class="card-img-top" alt="Gambar 1">
@@ -29,6 +47,7 @@
                      </div>
                   </div>
                </div>
+               @endforelse
 
                <div class="col-md-3 mt-2 mb-3">
                   <button type="button" id="addCardBtn" class="btn-outline-primary d-flex flex-column align-items-center justify-content-center" style="width: 18rem; height: 18rem; border: 2px dashed #0d6efd; border-radius: 8px; background: transparent;">
@@ -41,22 +60,22 @@
 
             <div class="col-md-6">
                <label for="nama" class="form-label">Nama Event</label>
-               <input type="text" class="form-control" id="nama" name="nama" placeholder="Masukkan nama event" required>
+               <input type="text" class="form-control" id="nama" name="nama" value="{{ old('nama', $event->nama ?? '') }}" placeholder="Masukkan nama event" required>
             </div>
 
             <div class="col-md-6">
                <label for="tanggal" class="form-label">Tanggal</label>
-               <input type="date" class="form-control" id="tanggal" name="tanggal" required>
+               <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ old('tanggal', $event->tanggal ?? '') }}" required>
             </div>
 
             <div class="col-md-6">
                <label for="penyelenggara" class="form-label">Penyelenggara</label>
-               <input type="text" class="form-control" id="penyelenggara" name="penyelenggara" placeholder="Masukkan nama penyelenggara" required>
+               <input type="text" class="form-control" id="penyelenggara" name="penyelenggara" value="{{ old('penyelenggara', $event->penyelenggara ?? '') }}" placeholder="Masukkan nama penyelenggara" required>
             </div>
 
             <div class="col-md-6">
                <label for="lokasi" class="form-label">Lokasi</label>
-               <input type="text" class="form-control" id="lokasi" name="lokasi" placeholder="Masukkan lokasi event">
+               <input type="text" class="form-control" id="lokasi" name="lokasi" value="{{ old('lokasi', $event->lokasi ?? '') }}" placeholder="Masukkan lokasi event">
             </div>
 
             <div class="col-md-6" style="overflow: visible;">
@@ -64,42 +83,39 @@
                <select id="id_provinsi" class="form-select" name="id_provinsi" required style="position: relative; z-index: 1050;">
                   <option value="">Pilih Provinsi...</option>
                   @foreach($provinsi as $prov)
-                     <option value="{{ $prov->id }}">{{ $prov->provinsi }}</option>
+                     <option value="{{ $prov->id }}" @selected(old('id_provinsi', $event->id_provinsi ?? '') == $prov->id)>{{ $prov->provinsi }}</option>
                   @endforeach
                </select>
             </div>
 
-            <div class="col-md-6" style="overflow: visible;">
+            <div class="col-md-6">
                <label for="kota" class="form-label">Kota</label>
-               <select id="kota" class="form-select" name="kota" required style="position: relative; z-index: 1050;">
-                  <option value="">Pilih Kota...</option>
-                  <option value="Jakarta">Jakarta</option>
-                  <option value="Bandung">Bandung</option>
-                  <option value="Surabaya">Surabaya</option>
-                  <option value="Yogyakarta">Yogyakarta</option>
-                  <option value="Denpasar">Denpasar</option>
-                  <option value="Lainnya">Lainnya</option>
-               </select>
+               <input type="text" id="kota" class="form-control" name="kota" value="{{ old('kota', $event->kota ?? '') }}" placeholder="Masukkan kota event" required>
             </div>
 
             <div class="col-md-6">
                <label for="sumber" class="form-label">Sumber Informasi</label>
-               <input type="text" class="form-control" id="sumber" name="sumber" placeholder="Sumber informasi event">
+               <input type="text" class="form-control" id="sumber" name="sumber" value="{{ old('sumber', $event->sumber ?? '') }}" placeholder="Sumber informasi event">
             </div>
 
             <div class="col-md-6">
                <label for="htm" class="form-label">Harga Tiket Masuk</label>
-               <input type="number" class="form-control" id="htm" name="htm" placeholder="Masukkan harga tiket" min="0">
+               <input type="number" class="form-control" id="htm" name="htm" value="{{ old('htm', $event->htm ?? '') }}" placeholder="Masukkan harga tiket" min="0">
+            </div>
+
+            <div class="col-md-6">
+               <label for="kelasPertandingan" class="form-label">Kelas Pertandingan</label>
+               <input type="text" class="form-control" id="kelasPertandingan" name="kelasPertandingan" value="{{ old('kelasPertandingan', $event->kelasPertandingan ?? '') }}" placeholder="Contoh: 3 on 3 Rifle, Duelling Plat">
             </div>
 
             <div class="col-12">
                <label for="deskripsi" class="form-label">Detail / Deskripsi Event</label>
-               <textarea class="form-control" id="deskripsi" name="deskripsi" rows="6" maxlength="1000" placeholder="Jelaskan konsep event, rangkaian kegiatan, ketentuan peserta, dan informasi penting lainnya..."></textarea>
+               <textarea class="form-control" id="deskripsi" name="deskripsi" rows="6" maxlength="1000" placeholder="Jelaskan konsep event, rangkaian kegiatan, ketentuan peserta, dan informasi penting lainnya...">{{ old('deskripsi', $event->deskripsi ?? '') }}</textarea>
                <div class="form-text text-end"><span id="deskripsiCounter">0</span>/1000 karakter</div>
             </div>
 
             <div class="col-12" style="margin-bottom: 300px;">
-               <button type="submit" class="btn btn-primary" onclick="prepareSubmit()">Simpan</button>
+               <button type="submit" class="btn btn-primary" onclick="prepareSubmit()">{{ $isEdit ? 'Simpan Perubahan' : 'Simpan' }}</button>
                <button type="button" class="btn btn-secondary" onclick="resetAllCards()">Reset Card</button>
             </div>
          </form>

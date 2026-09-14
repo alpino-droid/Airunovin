@@ -100,14 +100,13 @@
                     <div class="card-body p-4">
                         <h2 class="h5 fw-bold mb-1">Foto produk</h2>
                         <p class="text-muted small mb-3">Format JPG, PNG, atau WEBP. Maksimal 2 MB.</p>
-                        <div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center overflow-hidden mb-3 position-relative">
+                        <div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center overflow-hidden mb-3">
                             <img id="productPreview" src="{{ asset('img/balnkLogo.png') }}" alt="Pratinjau produk" class="img-fluid" style="object-fit: contain;">
-                            <label for="gambar" class="btn btn-light border shadow-sm position-absolute bottom-0 start-50 translate-middle-x mb-3">
-                                <i class="bi bi-upload me-1" aria-hidden="true"></i>Pilih file
-                            </label>
                         </div>
-                        <input type="file" class="d-none @error('gambar') is-invalid @enderror" id="gambar" name="gambar" accept="image/jpeg,image/png,image/webp">
-                        <div id="fileName" class="text-muted small text-center mb-3">Belum ada file dipilih</div>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-outline-primary" id="uploadBtn">Upload File</button>
+                            <input type="file" class="d-none @error('gambar') is-invalid @enderror" id="gambar" name="gambar" accept="image/jpeg,image/png,image/webp">
+                        </div>
                         @error('gambar')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Tambah produk</button>
@@ -124,16 +123,19 @@
 @push('scripts')
 <script>
     const productImageInput = document.getElementById('gambar');
+    const uploadButton = document.getElementById('uploadBtn');
     const productPreview = document.getElementById('productPreview');
-    const fileName = document.getElementById('fileName');
     const descriptionInput = document.getElementById('deskripsi');
     const descriptionCounter = document.getElementById('deskripsiCounter');
+
+    uploadButton.addEventListener('click', function () {
+        productImageInput.click();
+    });
 
     productImageInput.addEventListener('change', function () {
         const [file] = this.files;
         if (file) {
             productPreview.src = URL.createObjectURL(file);
-            fileName.textContent = file.name;
         }
     });
 

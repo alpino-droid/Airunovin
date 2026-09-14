@@ -12,42 +12,21 @@
             </div>
             <div class="col">
                 <div class="d-flex gap-2">
-                    <div class="dropdown">
-                        <button class="btn warna-nav dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                style="width: 350px">
-                            <span>{{ __('All Provinces') }}</span>
-                        </button>
-                        <ul class="dropdown-menu" style="width: 350px">
-                            <li>
-                                <div class="mb-3">
-                                    <input type="email" class="form-control" id="exampleDropdownFormEmail2" placeholder="{{ __('Province') }}">
-                                </div>
-                            </li>
-                            <li><a class="dropdown-item active" href="#">Action 1</a></li>
-                            <li><a class="dropdown-item" href="#">Action 2</a></li>
-                            <li><a class="dropdown-item" href="#">Action 3</a></li>
-                        </ul>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn warna-nav dropdown-toggle"
-                                type="button"
-                                data-bs-toggle="dropdown"
-                                style="width: 350px">
-                            <span>{{ __('All Cities') }}</span>
-                        </button>
-                        <ul class="dropdown-menu" style="width: 350px">
-                            <li>
-                                <div class="mb-3">
-                                    <input type="email" class="form-control" id="exampleDropdownFormEmail2" placeholder="{{ __('City') }}">
-                                </div>
-                            </li>
-                            <li><a class="dropdown-item" href="#">Action A</a></li>
-                            <li><a class="dropdown-item" href="#">Action B</a></li>
-                            <li><a class="dropdown-item" href="#">Action C</a></li>
-                        </ul>
-                    </div>
+                    <form method="GET" action="{{ route('club') }}" class="d-flex gap-2">
+                        <select name="province" class="form-select">
+                            <option value="">{{ __('All Provinces') }}</option>
+                            @foreach($provinsi as $prov)
+                                <option value="{{ $prov->id }}" @selected(request('province') == $prov->id)>{{ $prov->provinsi }}</option>
+                            @endforeach
+                        </select>
+                        <select name="city" class="form-select">
+                            <option value="">{{ __('All Cities') }}</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city }}" @selected(request('city') == $city)>{{ $city }}</option>
+                            @endforeach
+                        </select>
+                        <button class="btn btn-primary" type="submit">Filter</button>
+                    </form>
                 </div>
             </div>
         </div>

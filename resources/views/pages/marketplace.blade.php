@@ -9,38 +9,21 @@
                 <h1 class="h1 marketplace-title">{{ __('Marketplace') }}</h1>
             </div>
             <div class="col">
-                <div class="d-flex gap-2 justify-content-end">
-                    <div class="dropdown">
-                        <button class="btn marketplace-filter dropdown-toggle" type="button" data-bs-toggle="dropdown" style="width: 200px;">
-                            {{ __('Province') }}
-                        </button>
-                        <ul class="dropdown-menu" style="width: 200px;">
-                            <li>
-                                <div class="mb-3 px-3">
-                                    <input type="text" class="form-control" placeholder="{{ __('Search') }} {{ __('Province') }}">
-                                </div>
-                            </li>
-                            <li><a class="dropdown-item" href="#">Action 1</a></li>
-                            <li><a class="dropdown-item" href="#">Action 2</a></li>
-                            <li><a class="dropdown-item" href="#">Action 3</a></li>
-                        </ul>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn marketplace-filter dropdown-toggle" type="button" data-bs-toggle="dropdown" style="width: 200px;">
-                            {{ __('City') }}
-                        </button>
-                        <ul class="dropdown-menu" style="width: 200px;">
-                            <li>
-                                <div class="mb-3 px-3">
-                                    <input type="text" class="form-control" placeholder="{{ __('Search') }} {{ __('City') }}">
-                                </div>
-                            </li>
-                            <li><a class="dropdown-item" href="#">Action A</a></li>
-                            <li><a class="dropdown-item" href="#">Action B</a></li>
-                            <li><a class="dropdown-item" href="#">Action C</a></li>
-                        </ul>
-                    </div>
-                </div>
+                <form method="GET" action="{{ route('marketplace') }}" class="d-flex gap-2 justify-content-end">
+                    <select name="province" class="form-select" aria-label="{{ __('Province') }}">
+                        <option value="">{{ __('All Provinces') }}</option>
+                        @foreach($provinsi as $prov)
+                            <option value="{{ $prov->provinsi }}" @selected(request('province') == $prov->provinsi)>{{ $prov->provinsi }}</option>
+                        @endforeach
+                    </select>
+                    <select name="city" class="form-select" aria-label="{{ __('City') }}">
+                        <option value="">{{ __('All Cities') }}</option>
+                        @foreach($cities as $city)
+                            <option value="{{ $city }}" @selected(request('city') == $city)>{{ $city }}</option>
+                        @endforeach
+                    </select>
+                    <button class="btn btn-primary" type="submit">Filter</button>
+                </form>
             </div>
         </div>
     </div>
@@ -118,6 +101,36 @@
 
         <h5 class="fw-bold mb-3 marketplace-section-title">{{ __('Latest Products') }}</h5>
 
+        @if ($products->isNotEmpty())
+            <div class="row justify-content-center g-2 mb-4">
+                @foreach ($products as $produk)
+                    <div class="col-auto mb-5">
+                        <a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark">
+                            <div class="card h-100" style="width: 13rem;">
+                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                                    @if ($produk->gambar)
+                                        <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
+                                    @else
+                                        <img src="{{ asset('img/balnkLogo.png') }}" alt="{{ $produk->nama }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
+                                    @endif
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title fw-bold text-truncate" title="{{ $produk->nama }}">{{ $produk->nama }}</h5>
+                                    <ul class="list-unstyled small mb-2">
+                                        <li class="text-success fw-semibold mb-1">Rp {{ number_format($produk->harga, 0, ',', '.') }}</li>
+                                        <li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">{{ $produk->merk }}</span></li>
+                                        <li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">{{ $produk->jenis }}</span></li>
+                                    </ul>
+                                    <div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $produk->lokasi }}</div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        @if(!request()->filled('province') && !request()->filled('city'))
         @php
             $produkMarketplace = [
                 [
@@ -191,5 +204,6 @@
                 </div>
             @endforeach
         </div>
+        @endif
     </div>
 @endsection

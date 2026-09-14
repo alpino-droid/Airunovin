@@ -17,22 +17,21 @@
             </div>
             <div class="col">
                 <div class="d-flex gap-2">
-                    <div class="col-md-6">
-                        <select id="inputState" class="form-select">
+                    <form method="GET" action="{{ route('event') }}" class="d-flex gap-2">
+                        <select name="province" class="form-select">
                             <option value="">{{ __('All Provinces') }}</option>
-                            <option value="Aceh">Aceh</option>
-                            <option value="Bali">Bali</option>
-                            <option value="Banten">Banten</option>
+                            @foreach($provinsi as $prov)
+                                <option value="{{ $prov->id }}" @selected(request('province') == $prov->id)>{{ $prov->provinsi }}</option>
+                            @endforeach
                         </select>
-                    </div>
-                    <div class="col-md-6">
-                        <select id="inputState" class="form-select">
+                        <select name="city" class="form-select">
                             <option value="">{{ __('All Cities') }}</option>
-                            <option value="Aceh">Surabaya</option>
-                            <option value="Bali">Jakarta</option>
-                            <option value="Banten">Palembang</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city }}" @selected(request('city') == $city)>{{ $city }}</option>
+                            @endforeach
                         </select>
-                    </div>
+                        <button class="btn btn-primary" type="submit">Filter</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -43,7 +42,7 @@
         <div class="row justify-content-center g-2">
             @foreach($events as $evt)
                 <div class="col-auto mb-5">
-                    <a href="{{ route('isiEvent') }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
                                 @if($evt->poster && count($evt->poster) > 0)

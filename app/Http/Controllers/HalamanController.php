@@ -3,14 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Provinsi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class HalamanController extends Controller
 {
-    public function marketplace()
+    public function marketplace(Request $request)
     {
-        return view('pages.marketplace');
+        $query = Product::with('user');
+
+        if ($request->filled('province')) {
+            $query->whereHas('user', fn ($userQuery) => $userQuery->where('province', $request->string('province')));
+        }
+        if ($request->filled('city')) {
+            $query->where('lokasi', 'like', '%' . $request->string('city') . '%');
+        }
+
+        $products = $query->latest()->get();
+        $provinsi = Provinsi::orderBy('provinsi')->get();
+        $cities = Product::query()->whereNotNull('lokasi')->distinct()->orderBy('lokasi')->pluck('lokasi');
+
+        return view('pages.marketplace', compact('products', 'provinsi', 'cities'));
     }
 
     public function isiMarketplace()
@@ -20,7 +36,9 @@ class HalamanController extends Controller
 
     public function DM()
     {
-        return view('pages.dashboardMarketplace');
+        $products = Product::where('id_user', Auth::id())->latest()->get();
+
+        return view('pages.dashboardMarketplace', compact('products'));
     }
 
     public function productCreate()
@@ -43,7 +61,13 @@ class HalamanController extends Controller
         ]);
 
         if ($request->hasFile('gambar')) {
-            $validated['gambar'] = $request->file('gambar')->store('Product', 'public');
+            $productDirectory = public_path('storage/Product');
+            File::ensureDirectoryExists($productDirectory);
+
+            $image = $request->file('gambar');
+            $filename = Str::uuid() . '.' . $image->getClientOriginalExtension();
+            $image->move($productDirectory, $filename);
+            $validated['gambar'] = 'Product/' . $filename;
         }
 
         $validated['id_user'] = Auth::id();

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class event extends Model
 {
@@ -23,13 +24,41 @@ class event extends Model
         'kota',
         'sumber',
         'htm',
+        'kelasPertandingan',
         'deskripsi',
         'poster',
     ];
 
     protected $casts = [
         'poster' => 'array',
+        'tanggal' => 'date',
     ];
+
+    public function getPosterAttribute($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+
+            if (is_string($decoded) && $decoded !== '') {
+                return [$decoded];
+            }
+        }
+
+        return [];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'id_user');
+    }
 
     public static function posterValidationRules(): array
     {
