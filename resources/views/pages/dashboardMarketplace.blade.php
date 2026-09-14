@@ -92,7 +92,7 @@
                         <h2 class="h5 fw-bold mb-1">{{ __('Your Products') }}</h2>
                         <p class="text-muted small mb-0">{{ __('List of products displayed in the marketplace.') }}</p>
                      </div>
-                     <a href="{{ route('marketplace') }}" class="btn btn-outline-primary btn-sm">Kelola produk</a>
+                     <a href="{{ route('product.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Tambah produk</a>
                   </div>
                   <div class="row g-3">
                      <div class="col-6">

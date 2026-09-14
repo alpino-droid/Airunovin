@@ -44,12 +44,12 @@ class UserController extends Controller
             'nama' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
-            'province' => 'nullable|string|max:100',
+            'id_provinsi' => 'nullable|integer|exists:provinsi,id',
             'city' => 'nullable|string|max:100',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $user->fill($request->only(['username', 'nama', 'email', 'phone', 'province', 'city']));
+        $user->fill($request->only(['username', 'nama', 'email', 'phone', 'id_provinsi', 'city']));
         if ($request->hasFile('profile_picture')) {
             if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
                 Storage::disk('public')->delete($user->profile_picture);

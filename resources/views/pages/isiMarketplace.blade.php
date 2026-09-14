@@ -2,15 +2,15 @@
 
 @php
     $produk = [
-        'nama' => 'AKM Custom Series',
-        'harga' => 500000,
-        'merk' => 'Airunovin Works',
-        'jenis' => 'Unit airsoft',
+        'nama' => 'M4 Custom AEG',
+        'harga' => 2850000,
+        'merk' => 'M4',
+        'jenis' => 'Unit',
         'kondisi' => 'Sangat baik',
         'stok' => 1,
-        'lokasi' => 'Jakarta Selatan',
-        'penjual' => 'Raka Airsoft Store',
-        'gambar' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9KFwILjltWqouFyItT05x1IPDibjw76ifBynVi280uA&s=10',
+        'lokasi' => 'Bandung',
+        'penjual' => 'M4 Airsoft Store',
+        'gambar' => asset('img/imgStatik/GambarProduk/G.S.P2.jpg'),
     ];
 
     $gambarProduk = [$produk['gambar'], $produk['gambar'], $produk['gambar']];
@@ -95,8 +95,8 @@
                         <img id="productMainImage" src="{{ $produk['gambar'] }}" alt="{{ $produk['nama'] }}">
                     </div>
                     <div class="d-flex gap-2 p-3 border-top" aria-label="Pilih foto produk">
-                        @foreach ($gambarProduk as $index => $gambar)
-                            <button type="button" class="product-detail__thumb rounded-2 {{ $index === 0 ? 'active' : '' }}" data-image="{{ $gambar }}" aria-label="Foto {{ $index + 1 }}">
+                        @foreach ($gambarProduk as $gambar)
+                            <button type="button" class="product-detail__thumb rounded-2 " data-image="{{ $gambar }}" aria-label="Foto">
                                 <img src="{{ $gambar }}" alt="">
                             </button>
                         @endforeach
@@ -124,7 +124,7 @@
                     </div>
 
                     <h2 class="h5 fw-bold">Tentang produk</h2>
-                    <p class="text-muted mb-4">AKM custom dengan tampilan terawat, cocok untuk latihan maupun koleksi. Pesan langsung melalui checkout untuk melanjutkan pembelian.</p>
+                    <p class="text-muted mb-4">M4 Custom AEG dengan kondisi sangat baik, cocok untuk latihan, skirmish, maupun koleksi. Pesan langsung melalui checkout untuk melanjutkan pembelian.</p>
 
                     <div class="d-grid gap-2 d-sm-flex">
                         <button type="button" class="btn btn-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#buyProductModal">Beli sekarang</button>
@@ -148,33 +148,37 @@
                 <div><p class="text-uppercase text-muted small fw-semibold mb-1">Lihat lainnya</p><h2 id="produk-serupa" class="h4 fw-bold mb-0">Produk serupa</h2></div>
                 <a href="{{ route('marketplace') }}" class="small text-decoration-none">Lihat semua</a>
             </div>
+            @php
+                $products = [
+                    ['image' => 'G.S.P1.jpg', 'name' => 'Tactical Vest', 'price' => 'Rp 450.000', 'brand' => 'Condor', 'category' => 'Perlengkapan', 'region' => 'Jakarta'],
+                    ['image' => 'G.S.P2.jpg', 'name' => 'AEG M4', 'price' => 'Rp 2.750.000', 'brand' => 'Specna Arms', 'category' => 'Unit', 'region' => 'Bandung'],
+                    ['image' => 'G.S.P3.jpg', 'name' => 'AEG M4 NEW RAKIT', 'price' => 'Rp 3.250.000', 'brand' => 'Custom Build', 'category' => 'Unit', 'region' => 'Surabaya'],
+                    ['image' => 'G.S.P4.jpg', 'name' => 'Dcobra SIG556 custom', 'price' => 'Rp 900.000', 'brand' => 'Dcobra', 'category' => 'Unit', 'region' => 'Yogyakarta'],
+                    ['image' => 'G.S.P5.jpg', 'name' => 'Kokang Metal Hybrid-X Dcobra MAK47L', 'price' => 'Rp 1.250.000', 'brand' => 'RCW', 'category' => 'Part', 'region' => 'Malang'],
+                    ['image' => 'G.S.P6.jpg', 'name' => 'Maple Leaf Hop Up Chamber Assembly for Tokyo Marui / KJ Works / WE / 1911 GBB', 'price' => 'Rp 325.000', 'brand' => 'Maple Leaf', 'category' => 'Part', 'region' => 'Depok'],
+                ];
+            @endphp
             <div class="row justify-content-center g-2">
-                @for($i = 0; $i < 6; $i++)
+                @foreach ($products as $product)
                     <div class="col-auto mb-5">
                         <a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark">
                             <div class="card h-100" style="width: 13rem;">
                                 <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                    <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif" alt="Product thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
+                                    <img src="{{ asset('img/imgStatik/GambarProduk/' . $product['image']) }}" alt="{{ $product['name'] }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
                                 </div>
                                 <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title fw-bold text-truncate" title="{{ $produk['nama'] }}">{{ $produk['nama'] }}</h5>
+                                    <h5 class="card-title fw-bold text-truncate" title="{{ $product['name'] }}">{{ $product['name'] }}</h5>
                                     <ul class="list-unstyled small mb-2">
-                                        <li class="text-success fw-semibold mb-1">Rp {{ number_format($produk['harga'], 0, ',', '.') }}</li>
-                                        <li><span class="text-muted">Merk:</span> {{ $produk['merk'] }}</li>
-                                        <li><span class="text-muted">Jenis:</span> {{ $produk['jenis'] }}</li>
-                                        <li>
-                                            <span class="text-muted">Model:</span>
-                                            <span class="badge bg-secondary">{{ $produk['stok'] }}</span>
-                                        </li>
+                                        <li class="text-success fw-semibold mb-1">{{ $product['price'] }}</li>
+                                        <li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">{{ $product['brand'] }}</span></li>
+                                        <li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">{{ $product['category'] }}</span></li>
                                     </ul>
-                                    <div class="mt-auto">
-                                        <span class="badge bg-warning text-dark">Airsoft</span>
-                                    </div>
+                                    <div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $product['region'] }}</div>
                                 </div>
                             </div>
                         </a>
                     </div>
-                @endfor
+                @endforeach
             </div>
         </section>
     </div>

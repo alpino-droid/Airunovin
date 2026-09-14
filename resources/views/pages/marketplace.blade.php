@@ -56,10 +56,10 @@
                         <ul class="dropdown-menu" style="min-width: 200px;">
                             <li><a class="dropdown-item" href="#">{{ __('All Units') }}</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Unit A</a></li>
-                            <li><a class="dropdown-item" href="#">Unit B</a></li>
-                            <li><a class="dropdown-item" href="#">Unit C</a></li>
-                            <li><a class="dropdown-item" href="#">Unit D</a></li>
+                            <li><a class="dropdown-item" href="#">Rifle</a></li>
+                            <li><a class="dropdown-item" href="#">Shotgun</a></li>
+                            <li><a class="dropdown-item" href="#">Machine Gun</a></li>
+                            <li><a class="dropdown-item" href="#">Sniper Rifle</a></li>
                         </ul>
                     </div>
 
@@ -70,10 +70,10 @@
                         <ul class="dropdown-menu" style="min-width: 200px;">
                             <li><a class="dropdown-item" href="#">{{ __('All Spareparts') }}</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Sparepart A</a></li>
-                            <li><a class="dropdown-item" href="#">Sparepart B</a></li>
-                            <li><a class="dropdown-item" href="#">Sparepart C</a></li>
-                            <li><a class="dropdown-item" href="#">Sparepart D</a></li>
+                            <li><a class="dropdown-item" href="#">Inbar</a></li>
+                            <li><a class="dropdown-item" href="#">Hop up</a></li>
+                            <li><a class="dropdown-item" href="#">Spring</a></li>
+                            <li><a class="dropdown-item" href="#"></a></li>
                         </ul>
                     </div>
 
@@ -84,10 +84,10 @@
                         <ul class="dropdown-menu" style="min-width: 200px;">
                             <li><a class="dropdown-item" href="#">{{ __('All Accessories') }}</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Aksesoris A</a></li>
-                            <li><a class="dropdown-item" href="#">Aksesoris B</a></li>
-                            <li><a class="dropdown-item" href="#">Aksesoris C</a></li>
-                            <li><a class="dropdown-item" href="#">Aksesoris D</a></li>
+                            <li><a class="dropdown-item" href="#">Scope</a></li>
+                            <li><a class="dropdown-item" href="#">Hand grip</a></li>
+                            <li><a class="dropdown-item" href="#">Laser</a></li>
+                            <li><a class="dropdown-item" href="#"></a></li>
                         </ul>
                     </div>
 
@@ -118,20 +118,78 @@
 
         <h5 class="fw-bold mb-3 marketplace-section-title">{{ __('Latest Products') }}</h5>
 
+        @php
+            $produkMarketplace = [
+                [
+                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P1.jpg',
+                    'nama' => 'Tactical Vest Modular',
+                    'harga' => 350000,
+                    'merk' => 'EmersonGear',
+                    'jenis' => 'Accessories',
+                    'wilayah' => 'Jakarta Selatan',
+                ],
+                [
+                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P2.jpg',
+                    'nama' => 'M4 Custom AEG',
+                    'harga' => 2850000,
+                    'merk' => 'M4',
+                    'jenis' => 'Unit',
+                    'wilayah' => 'Bandung',
+                ],
+                [
+                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P3.jpg',
+                    'nama' => 'M4 CQB AEG',
+                    'harga' => 3200000,
+                    'merk' => 'M4',
+                    'jenis' => 'Unit',
+                    'wilayah' => 'Surabaya',
+                ],
+                [
+                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P4.jpg',
+                    'nama' => 'Dcobra SIG556 custom',
+                    'harga' => 900000,
+                    'merk' => 'Dcobra',
+                    'jenis' => 'Unit',
+                    'wilayah' => 'Jakarta Timur',
+                ],
+                [
+                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P5.jpg',
+                    'nama' => 'Kokang Metal Hybrid-1 MAK47L',
+                    'harga' => 175000,
+                    'merk' => 'RCW',
+                    'jenis' => 'Sparepart',
+                    'wilayah' => 'Malang',
+                ],
+                [
+                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P6.jpg',
+                    'nama' => 'Maple Leaf Hop Up Chamber',
+                    'harga' => 450000,
+                    'merk' => 'Maple Leaf',
+                    'jenis' => 'Sparepart',
+                    'wilayah' => 'Malang',
+                ],
+            ];
+        @endphp
+
         <div class="row justify-content-center g-2">
-            <div class="col-auto mb-5">
-                <a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark">
-                    <div class="card h-100" style="width: 13rem;">
-                        <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P1.jpg') }}" alt="Product thumbnail 1" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div>
-                        <div class="card-body d-flex flex-column"><h5 class="card-title fw-bold text-truncate">Nama Produk</h5><ul class="list-unstyled small mb-2"><li class="text-success fw-semibold mb-1">Rp 150.000</li><li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">Merk A</span></li><li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">Elektronik</span></li></ul><div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> Wilayah</div></div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-auto mb-5"><a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark"><div class="card h-100" style="width: 13rem;"><div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P2.jpg') }}" alt="Product thumbnail 2" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold text-truncate">Nama Produk</h5><ul class="list-unstyled small mb-2"><li class="text-success fw-semibold mb-1">Rp 150.000</li><li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">Merk A</span></li><li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">Elektronik</span></li></ul><div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> Wilayah</div></div></div></a></div>
-            <div class="col-auto mb-5"><a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark"><div class="card h-100" style="width: 13rem;"><div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P3.jpg') }}" alt="Product thumbnail 3" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold text-truncate">Nama Produk</h5><ul class="list-unstyled small mb-2"><li class="text-success fw-semibold mb-1">Rp 150.000</li><li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">Merk A</span></li><li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">Elektronik</span></li></ul><div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> Wilayah</div></div></div></a></div>
-            <div class="col-auto mb-5"><a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark"><div class="card h-100" style="width: 13rem;"><div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P4.jpg') }}" alt="Product thumbnail 4" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold text-truncate">Nama Produk</h5><ul class="list-unstyled small mb-2"><li class="text-success fw-semibold mb-1">Rp 150.000</li><li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">Merk A</span></li><li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">Elektronik</span></li></ul><div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> Wilayah</div></div></div></a></div>
-            <div class="col-auto mb-5"><a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark"><div class="card h-100" style="width: 13rem;"><div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P5.jpg') }}" alt="Product thumbnail 5" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold text-truncate">Nama Produk</h5><ul class="list-unstyled small mb-2"><li class="text-success fw-semibold mb-1">Rp 150.000</li><li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">Merk A</span></li><li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">Elektronik</span></li></ul><div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> Wilayah</div></div></div></a></div>
-            <div class="col-auto mb-5"><a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark"><div class="card h-100" style="width: 13rem;"><div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P6.jpg') }}" alt="Product thumbnail 6" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div><div class="card-body d-flex flex-column"><h5 class="card-title fw-bold text-truncate">Nama Produk</h5><ul class="list-unstyled small mb-2"><li class="text-success fw-semibold mb-1">Rp 150.000</li><li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">Merk A</span></li><li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">Elektronik</span></li></ul><div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> Wilayah</div></div></div></a></div>
+            @foreach ($produkMarketplace as $produk)
+                <div class="col-auto mb-5">
+                    <a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark">
+                        <div class="card h-100" style="width: 13rem;">
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset($produk['gambar']) }}" alt="{{ $produk['nama'] }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title fw-bold text-truncate" title="{{ $produk['nama'] }}">{{ $produk['nama'] }}</h5>
+                                <ul class="list-unstyled small mb-2">
+                                    <li class="text-success fw-semibold mb-1">Rp {{ number_format($produk['harga'], 0, ',', '.') }}</li>
+                                    <li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">{{ $produk['merk'] }}</span></li>
+                                    <li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">{{ $produk['jenis'] }}</span></li>
+                                </ul>
+                                <div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $produk['wilayah'] }}</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            @endforeach
         </div>
     </div>
 @endsection

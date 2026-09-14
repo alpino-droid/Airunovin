@@ -90,8 +90,8 @@
                     <a href="{{ route('isiEvent') }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                @if($evt->poster && is_array(json_decode($evt->poster, true)) && count(json_decode($evt->poster, true)) > 0)
-                                    @php $posters = json_decode($evt->poster, true); @endphp
+                                @if($evt->poster && count($evt->poster) > 0)
+                                    @php $posters = $evt->poster; @endphp
                                     <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: cover;" loading="lazy">
                                 @else
                                     <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">

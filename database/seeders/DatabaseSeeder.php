@@ -17,15 +17,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             ProvinsiSeeder::class,
+            userSeeder::class,
+            eventSeeder::class,
         ]);
-
-        User::factory()->create([
-            'username' => 'testuser',
-            'nama' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
-        // Buat beberapa user tambahan untuk testing
-        User::factory(5)->create();
     }
 }

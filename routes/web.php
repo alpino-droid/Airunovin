@@ -81,6 +81,8 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboardMarketplace', [HalamanController::class, 'DM'])->name('dashboardMarketplace');
+    Route::get('/dashboardMarketplace/product/create', [HalamanController::class, 'productCreate'])->name('product.create');
+    Route::post('/dashboardMarketplace/product', [HalamanController::class, 'productStore'])->name('product.store');
     
     // Route Club
     Route::get('/dashboardClub', [ClubController::class, 'clubCreate'])->name('dashboardClub');

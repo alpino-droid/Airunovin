@@ -56,8 +56,8 @@
                     <a href="{{ route('isiEvent') }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                @if($evt->poster && is_array(json_decode($evt->poster, true)) && count(json_decode($evt->poster, true)) > 0)
-                                    @php $posters = json_decode($evt->poster, true); @endphp
+                                @if($evt->poster && count($evt->poster) > 0)
+                                    @php $posters = $evt->poster; @endphp
                                     <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: cover;" loading="lazy">
                                 @else
                                     <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
@@ -101,8 +101,8 @@
                     <a href="{{ route('isiEvent') }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                @if($evt->poster && is_array(json_decode($evt->poster, true)) && count(json_decode($evt->poster, true)) > 0)
-                                    @php $posters = json_decode($evt->poster, true); @endphp
+                                @if($evt->poster && count($evt->poster) > 0)
+                                    @php $posters = $evt->poster; @endphp
                                     <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: cover;" loading="lazy">
                                 @else
                                     <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
@@ -146,8 +146,8 @@
                     ['image' => 'G.S.P1.jpg', 'name' => 'Tactical Vest', 'price' => 'Rp 450.000', 'brand' => 'Condor', 'category' => 'Perlengkapan', 'region' => 'Jakarta'],
                     ['image' => 'G.S.P2.jpg', 'name' => 'AEG M4', 'price' => 'Rp 2.750.000', 'brand' => 'Specna Arms', 'category' => 'Unit', 'region' => 'Bandung'],
                     ['image' => 'G.S.P3.jpg', 'name' => 'AEG M4 NEW RAKIT', 'price' => 'Rp 3.250.000', 'brand' => 'Custom Build', 'category' => 'Unit', 'region' => 'Surabaya'],
-                    ['image' => 'G.S.P4.jpg', 'name' => 'Dcobra M790 Mod ACR From MWII 2009', 'price' => 'Rp 1.850.000', 'brand' => 'Dcobra', 'category' => 'Unit', 'region' => 'Yogyakarta'],
-                    ['image' => 'G.S.P5.jpg', 'name' => 'Kokang Metal Hybrid-X Dcobra MAK47L', 'price' => 'Rp 1.250.000', 'brand' => 'Dcobra', 'category' => 'Part', 'region' => 'Malang'],
+                    ['image' => 'G.S.P4.jpg', 'name' => 'Dcobra SIG556 custom', 'price' => 'Rp 900.000', 'brand' => 'Dcobra', 'category' => 'Unit', 'region' => 'Yogyakarta'],
+                    ['image' => 'G.S.P5.jpg', 'name' => 'Kokang Metal Hybrid-X Dcobra MAK47L', 'price' => 'Rp 1.250.000', 'brand' => 'RCW', 'category' => 'Part', 'region' => 'Malang'],
                     ['image' => 'G.S.P6.jpg', 'name' => 'Maple Leaf Hop Up Chamber Assembly for Tokyo Marui / KJ Works / WE / 1911 GBB', 'price' => 'Rp 325.000', 'brand' => 'Maple Leaf', 'category' => 'Part', 'region' => 'Depok'],
                 ];
             @endphp

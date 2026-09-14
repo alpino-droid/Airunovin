@@ -24,14 +24,36 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        static $nama = [
+            'admin',
+            'User 1',
+            'User 2',
+            'User 3',
+            'User 4',
+            'User 5'
+        ];
+        static $phone = [
+            '081234567890',
+            '081234567891',
+            '081234567892',
+            '081234567893',
+            '081234567894'
+        ];
+        static $city = [
+            'Bandung',
+            'Semarang',
+            'Surabaya',
+            'Denpasar',
+            'Medan'
+        ];
         return [
             'username' => fake()->unique()->username(),
-            'nama' => fake()->name(),
+            'nama' => fake()->randomElement($nama),
             'email' => fake()->unique()->safeEmail(),
             'password' => static::$password ??= Hash::make('password'),
-            'phone' => fake()->phoneNumber(),
-            'province' => fake()->state(),
-            'city' => fake()->city(),
+            'phone' => fake()->randomElement($phone),
+            'id_provinsi' => fake()->randomElement($provinsiIds ??= \App\Models\Provinsi::query()->pluck('id')->all()),
+            'city' => fake()->randomElement($city),
             'remember_token' => Str::random(10),
         ];
     }

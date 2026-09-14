@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('nama');
             $table->string('profile_picture')->nullable();
             $table->string('phone')->nullable();
-            $table->string('province')->nullable();
+            $table->string('id_provinsi')->nullable();
             $table->string('city')->nullable();
             $table->rememberToken();
             $table->timestamps();
