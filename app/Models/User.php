@@ -95,6 +95,11 @@ class User extends Authenticatable
         return $this->hasMany(Marketplace::class);
     }
 
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'id_user');
+    }
+
     // ==========================================
     // PERMISSION CHECK (Tanpa Role)
     // ==========================================
@@ -131,6 +136,6 @@ class User extends Authenticatable
      */
     public function canEditMarketplace(Marketplace $marketplace): bool
     {
-        return $marketplace->user_id === $this->id;
+        return $marketplace->id_user === $this->id;
     }
 }

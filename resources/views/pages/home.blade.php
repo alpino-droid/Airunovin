@@ -15,8 +15,8 @@
                     <img src="{{ asset('img/h4.png') }}" class="d-block w-100 carousel-slide-image" alt="Komunitas Airunovin">
                 </div>
                 <div class="carousel-caption d-none d-md-block">
-                    <h5>{{ __('Welcome to Airunovin') }}</h5>
-                    <p>{{ __('Find the best experience in airsoft with an active and supportive community.') }}</p>
+                    <h1>{{ __('Welcome to Airunovin') }}</h1>
+                    <p><h3>{{ __('Find the best experience in airsoft with an active and supportive community.') }}</h3></p>
                 </div>
             </div>
             <div class="carousel-item">
@@ -24,8 +24,8 @@
                     <img src="{{ asset('img/h1.png') }}" class="d-block w-100 carousel-slide-image" alt="Informasi event dan produk airsoft gun">
                 </div>
                 <div class="carousel-caption d-none d-md-block">
-                    <h5>{{ __('Everything in one place') }}</h5>
-                    <p>{{ __('Follow competitions, get to know clubs, and find the gear that suits your needs.') }}</p>
+                    <h1>{{ __('Everything in one place') }}</h1>
+                    <p><h3>{{ __('Follow competitions, get to know clubs, and find the gear that suits your needs.') }}</h3></p>
                 </div>
             </div>
             <div class="carousel-item">
@@ -33,8 +33,8 @@
                     <img src="{{ asset('img/h2.png') }}" class="d-block w-100 carousel-slide-image" alt="Bergabung dengan komunitas airsoft gun">
                 </div>
                 <div class="carousel-caption d-none d-md-block">
-                    <h5>{{ __('Start your airsoft journey') }}</h5>
-                    <p>{{ __('Build connections, expand your knowledge, and enjoy being part of the airsoft community.') }}</p>
+                    <h1>{{ __('Start your airsoft journey') }}</h1>
+                    <p><h3>{{ __('Build connections, expand your knowledge, and enjoy being part of the airsoft community.') }}</h3></p>
                 </div>
             </div>
         </div>
@@ -49,18 +49,21 @@
     </div>
 
     <div class="container-xxl mt-5">
-        <p class="fs-3">{{ __('Latest Events') }}</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <p class="fs-3 mb-0 home-section-title">{{ __('Latest Events') }}</p>
+            <a href="{{ route('event') }}" class="btn btn-outline-primary btn-sm home-more-link">Selengkapnya <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
         <div class="row justify-content-center g-2">
             @forelse($eventsTerbaru as $evt)
                 <div class="col-auto mb-5">
                     <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                            <div class="card-img-top standard-poster-frame">
                                 @if($evt->poster && count($evt->poster) > 0)
                                     @php $posters = $evt->poster; @endphp
-                                    <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: cover;" loading="lazy">
+                                    <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                                 @else
-                                    <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
+                                    <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                                 @endif
                             </div>
                             <div class="card-body d-flex flex-column">
@@ -94,18 +97,21 @@
     </div>
 
     <div class="container-xxl mt-5">
-        <p class="fs-3">{{ __('Event') }}</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <p class="fs-3 mb-0 home-section-title">{{ __('Event') }}</p>
+            <a href="{{ route('event') }}" class="btn btn-outline-primary btn-sm home-more-link">Selengkapnya <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
         <div class="row justify-content-center g-2">
             @forelse($events as $evt)
                 <div class="col-auto mb-5">
                     <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                            <div class="card-img-top standard-poster-frame">
                                 @if($evt->poster && count($evt->poster) > 0)
                                     @php $posters = $evt->poster; @endphp
-                                    <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: cover;" loading="lazy">
+                                    <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                                 @else
-                                    <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
+                                    <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                                 @endif
                             </div>
                             <div class="card-body d-flex flex-column">
@@ -139,50 +145,51 @@
     </div>
 
     <div class="container-xxl mt-5">
-        <p class="fs-3">{{ __('Unit') }}</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <p class="fs-3 mb-0 home-section-title">{{ __('Unit') }}</p>
+            <a href="{{ route('marketplace') }}" class="btn btn-outline-primary btn-sm home-more-link">Selengkapnya <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
         <div class="row justify-content-center g-2">
-            @php
-                $products = [
-                    ['image' => 'G.S.P1.jpg', 'name' => 'Tactical Vest', 'price' => 'Rp 450.000', 'brand' => 'Condor', 'category' => 'Perlengkapan', 'region' => 'Jakarta'],
-                    ['image' => 'G.S.P2.jpg', 'name' => 'AEG M4', 'price' => 'Rp 2.750.000', 'brand' => 'Specna Arms', 'category' => 'Unit', 'region' => 'Bandung'],
-                    ['image' => 'G.S.P3.jpg', 'name' => 'AEG M4 NEW RAKIT', 'price' => 'Rp 3.250.000', 'brand' => 'Custom Build', 'category' => 'Unit', 'region' => 'Surabaya'],
-                    ['image' => 'G.S.P4.jpg', 'name' => 'Dcobra SIG556 custom', 'price' => 'Rp 900.000', 'brand' => 'Dcobra', 'category' => 'Unit', 'region' => 'Yogyakarta'],
-                    ['image' => 'G.S.P5.jpg', 'name' => 'Kokang Metal Hybrid-X Dcobra MAK47L', 'price' => 'Rp 1.250.000', 'brand' => 'RCW', 'category' => 'Part', 'region' => 'Malang'],
-                    ['image' => 'G.S.P6.jpg', 'name' => 'Maple Leaf Hop Up Chamber Assembly for Tokyo Marui / KJ Works / WE / 1911 GBB', 'price' => 'Rp 325.000', 'brand' => 'Maple Leaf', 'category' => 'Part', 'region' => 'Depok'],
-                ];
-            @endphp
-            @foreach ($products as $product)
-                <div class="col-auto mb-5">
-                    <a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark">
-                        <div class="card h-100" style="width: 13rem;">
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                <img src="{{ asset('img/imgStatik/GambarProduk/' . $product['image']) }}" alt="{{ $product['name'] }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
+
+            @foreach ($products as $produk)
+                    <div class="col-auto mb-5">
+                        <a href="{{ route('isiMarketplace', $produk->id) }}" class="text-decoration-none text-dark">
+                            <div class="card h-100" style="width: 13rem;">
+                                <div class="card-img-top product-image-frame">
+                                    @if ($produk->gambar)
+                                        <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                                    @else
+                                        <img src="{{ asset('img/balnkLogo.png') }}" alt="{{ $produk->nama }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                                    @endif
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title fw-bold text-truncate" title="{{ $produk->nama }}">{{ $produk->nama }}</h5>
+                                    <ul class="list-unstyled small mb-2">
+                                        <li class="text-success fw-semibold mb-1">Rp {{ number_format($produk->harga, 0, ',', '.') }}</li>
+                                        <li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">{{ $produk->merk }}</span></li>
+                                        <li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">{{ $produk->jenis }}</span></li>
+                                    </ul>
+                                    <div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $produk->lokasi }}</div>
+                                </div>
                             </div>
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title fw-bold text-truncate">{{ $product['name'] }}</h5>
-                                <ul class="list-unstyled small mb-2">
-                                    <li class="text-success fw-semibold mb-1">{{ $product['price'] }}</li>
-                                    <li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">{{ $product['brand'] }}</span></li>
-                                    <li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">{{ $product['category'] }}</span></li>
-                                </ul>
-                                <div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $product['region'] }}</div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            @endforeach
+                        </a>
+                    </div>
+                @endforeach
         </div>
     </div>
 
     <div class="container-xxl mt-5">
-        <p class="fs-3">{{ __('Club') }}</p>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <p class="fs-3 mb-0 home-section-title">{{ __('Club') }}</p>
+            <a href="{{ route('club') }}" class="btn btn-outline-primary btn-sm home-more-link">Selengkapnya <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
         <div class="row justify-content-center g-2">
             @forelse($clubs as $club)
                 <div class="col-auto mb-2">
-                    <a href="{{ route('isiClub') }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('isiClub', $club) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                <img src="{{ $club?->logo_url ?? asset('img/balnkLogo.png') }}" alt="Organization logo" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
+                                <img src="{{ $club?->logo_url ?? asset('img/balnkLogo.png') }}" alt="Organization logo" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <h5 class="card-title fw-bold text-truncate" title="Nama Organisasi">{{ $club->nama }}</h5>

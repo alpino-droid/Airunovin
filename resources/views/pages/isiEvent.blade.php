@@ -3,20 +3,41 @@
 @section('title', 'Home - Laravel Blade')
 
 @section('content')
+    @php $posters = $event->poster ?? []; @endphp
+
     <div class="container text-start pt-3">
        <div class="row align-items-start">
             <div class="col-4">
-                <div style="width: 100%; height: 560px; background: #f8f9fa; 
-                                                display: flex; align-items: center; justify-content: center; 
-                                                overflow: hidden; border-radius: 8px 8px 0 0;">
-                                        @if($event->poster && count($event->poster) > 0)
-                                            <img src="{{ asset('storage/' . $event->poster[0]) }}"
+                <div class="standard-poster-frame">
+                                        @if(count($posters) > 0)
+                                            <img src="{{ asset('storage/' . $posters[0]) }}"
                                                 alt="Poster {{ $event->nama }}"
-                                                style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                class="event-main-poster"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#eventImageModal"
+                                                data-image="{{ asset('storage/' . $posters[0]) }}"
+                                                style="cursor: zoom-in;">
                                         @else
                                             <span class="text-muted">Tidak ada poster</span>
                                         @endif
                                     </div>
+
+                @if(count($posters) > 0)
+                    <div class="d-flex flex-wrap gap-2 mt-2" aria-label="Galeri poster event">
+                        @foreach($posters as $poster)
+                            <button type="button"
+                                class="border-0 p-0 bg-transparent event-poster-thumb"
+                                data-bs-toggle="modal"
+                                data-bs-target="#eventImageModal"
+                                data-image="{{ asset('storage/' . $poster) }}"
+                                aria-label="Buka poster event">
+                                <img src="{{ asset('storage/' . $poster) }}"
+                                    alt="Poster {{ $event->nama }}"
+                                    style="width: 64px; height: 96px; object-fit: cover; border-radius: 6px;">
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
             </div>
             <div class="col">
 
@@ -96,10 +117,10 @@
                 <div class="col-auto mb-5">
                     <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                            <div class="card-img-top standard-poster-frame">
                                 @if($evt->poster && count($evt->poster) > 0)
                                     @php $posters = $evt->poster; @endphp
-                                    <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: cover;" loading="lazy">
+                                    <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
                                 @else
                                     <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
                                 @endif
@@ -136,4 +157,34 @@
             </div>
         </div>
     </div>
+
+    @if(count($posters) > 0)
+        <div class="modal fade" id="eventImageModal" tabindex="-1" aria-labelledby="eventImageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
+                <div class="modal-content bg-dark border-0">
+                    <div class="modal-header border-0">
+                        <h2 class="modal-title text-white fs-6" id="eventImageModalLabel">{{ $event->nama }}</h2>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body text-center p-2 p-md-4">
+                        <img id="eventModalImage"
+                            src="{{ asset('storage/' . $posters[0]) }}"
+                            alt="Poster {{ $event->nama }}"
+                            style="max-width: 100%; max-height: 75vh; object-fit: contain;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 @endsection 
+
+@push('scripts')
+    <script>
+        document.querySelectorAll('[data-bs-target="#eventImageModal"]').forEach((imageTrigger) => {
+            imageTrigger.addEventListener('click', () => {
+                const modalImage = document.getElementById('eventModalImage');
+                modalImage.src = imageTrigger.dataset.image;
+            });
+        });
+    </script>
+@endpush

@@ -18,7 +18,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ProvinsiSeeder::class,
             userSeeder::class,
+            clubSeeder::class,
+            MarketplaceSeeder::class,
+            ProductSeeder::class,
             eventSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }

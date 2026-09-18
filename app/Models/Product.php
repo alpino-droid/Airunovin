@@ -12,6 +12,7 @@ class Product extends Model
 
     protected $fillable = [
         'id_user',
+        'id_marketplace',
         'nama',
         'harga',
         'merk',
@@ -21,10 +22,23 @@ class Product extends Model
         'lokasi',
         'deskripsi',
         'gambar',
+        'payment_methods',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'payment_methods' => 'array',
+        ];
+    }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id_user');
+    }
+
+    public function marketplace(): BelongsTo
+    {
+        return $this->belongsTo(Marketplace::class, 'id_marketplace');
     }
 }

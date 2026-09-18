@@ -37,7 +37,7 @@
         <div class="row justify-content-center g-2">
             @forelse($clubs as $club)
                 <div class="col-auto mb-2">
-                    <a href="{{ route('isiClub') }}" class="text-decoration-none text-dark">
+                    <a href="{{ route('isiClub', $club) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px; overflow: hidden; border-radius: 8px 8px 0 0;">
                                 <img src="{{ $club?->logo_url ?? asset('img/balnkLogo.png') }}" alt="Organization logo" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">

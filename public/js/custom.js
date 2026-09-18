@@ -632,8 +632,8 @@ document.addEventListener('DOMContentLoaded', function() {
         ClubManager.init();
     }
 
-    // Inisialisasi Event Card Manager (jika ada elemen card)
-    if (document.getElementById('cardContainer') || document.getElementById('addCardBtn')) {
+    // Inisialisasi Event Card Manager (jika ada elemen card legacy dan bukan posterCardContainer)
+    if ((document.getElementById('cardContainer') || document.getElementById('addCardBtn')) && !document.getElementById('posterCardContainer')) {
         EventCardManager.init();
         
         // Set default image dari Laravel asset

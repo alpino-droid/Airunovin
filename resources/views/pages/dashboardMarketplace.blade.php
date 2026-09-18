@@ -14,35 +14,40 @@
          <a href="{{ route('marketplace') }}" class="btn btn-primary">{{ __('View marketplace') }}</a>
       </div>
 
+      @if(session('success'))
+         <div class="alert alert-success" role="alert">{{ session('success') }}</div>
+      @endif
+
       <div class="row g-4">
          <div class="col-12 col-xl-4">
             <section class="card border-0 shadow-sm h-100">
                <div class="card-body p-4">
                   <div class="col-4">
                      <div class="mt-3">
-                        {{-- TAMPILKAN FOTO PROFIL DARI DATABASE --}}
-                        <img src="{{ $user->profile_picture_url }}"
+                        <img src="{{ $marketplace?->logo ? asset('storage/' . $marketplace->logo) : asset('img/balnkLogo.png') }}"
                              class="img-thumbnail"
-                             alt="Profile Picture"
-                             id="profileImage"
+                             alt="Logo Marketplace"
+                             id="marketplaceLogoPreview"
                              style="width: 100%; height: auto; object-fit: cover; border-radius: 8px;"
                              onerror="this.src='{{ asset('img/blankPhotoProfile.png') }}'">
                      </div>
 
                      <div class="mb-3 mt-5 d-grid">
-                        <button class="btn btn-outline-primary" id="uploadBtn">{{ __('Upload File') }}</button>
-                        <input type="file" id="fileInput" class="d-none" accept="image/*">
+                        <label class="btn btn-outline-primary mb-0" for="logo">Upload Logo</label>
+                        <input type="file" id="logo" name="logo" form="marketplaceCreateForm" class="d-none @error('logo') is-invalid @enderror" accept="image/jpeg,image/png,image/webp">
+                        @error('logo')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        <div class="form-text text-center">Format JPG, PNG, atau WEBP, maksimal 2 MB.</div>
                      </div>
                   </div>
-                  <h2 class="h4 fw-bold mb-1">Marketplace {{ Auth::user()->nama ?? 'Anda' }}</h2>
-                  <p class="text-muted mb-3">Toko pribadi</p>
-                  <span class="badge text-bg-success px-3 py-2">{{ __('Active') }}</span>
+                  <h2 class="h4 fw-bold mb-1">{{ $marketplace?->nama ?? 'Marketplace ' . (Auth::user()->nama ?? 'Anda') }}</h2>
+                  <p class="text-muted mb-3">{{ $marketplace?->deskripsi ?: 'Toko pribadi' }}</p>
+                  <span class="badge {{ $marketplace?->status === 'inactive' ? 'text-bg-secondary' : 'text-bg-success' }} px-3 py-2">{{ $marketplace?->status === 'inactive' ? 'Nonaktif' : 'Aktif' }}</span>
                   <hr class="my-4">
                   <div class="row text-center">
                      <div class="col-4 border-end"><strong class="d-block h5 mb-1">0</strong><small class="text-muted">Produk</small></div>
                      <div class="col-4 border-end"><strong class="d-block h5 mb-1">0</strong><small class="text-muted">Terjual</small></div>
                      <div class="col-4"><strong class="d-block h5 mb-1">0</strong><small class="text-muted">Ulasan</small></div>
-                  </div>
+                  </div> 
                </div>
             </section>
          </div>
@@ -52,36 +57,52 @@
                <div class="card-body p-4">
                   <div class="d-flex justify-content-between align-items-center mb-4">
                      <div>
-                        <h2 class="h5 fw-bold mb-1">{{ __('Store Information') }}</h2>
-                        <p class="text-muted small mb-0">{{ __('This information appears on the seller profile.') }}</p>
+                        <h2 class="h5 fw-bold mb-1">{{ $marketplace ? 'Informasi Marketplace' : 'Buat Marketplace' }}</h2>
+                        <p class="text-muted small mb-0">{{ $marketplace ? 'Perbarui informasi marketplace Anda.' : 'Informasi ini akan tampil sebagai profil marketplace Anda.' }}</p>
                      </div>
                      <span class="text-muted small">Profil publik</span>
                   </div>
-                  <div class="row g-3">
+
+                  <form id="marketplaceCreateForm" class="row g-3" action="{{ $marketplace ? route('marketplace.update', $marketplace) : route('marketplace.store') }}" method="POST" enctype="multipart/form-data">
+                     @csrf
+                     @if($marketplace)
+                        @method('PUT')
+                     @endif
                      <div class="col-md-6">
-                        <label class="form-label fw-semibold" for="storeName">Nama toko</label>
-                        <input type="text" class="form-control" id="storeName" value="Marketplace {{ Auth::user()->nama ?? 'Anda' }}">
+                           <label class="form-label fw-semibold" for="storeName">Nama toko</label>
+                           <input type="text" class="form-control @error('nama') is-invalid @enderror" id="storeName" name="nama" value="{{ old('nama', $marketplace->nama ?? 'Marketplace ' . (Auth::user()->nama ?? 'Anda')) }}" placeholder="Contoh: Airsoft Gear Store" required>
+                           @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                           <label class="form-label fw-semibold" for="ownerName">Pemilik</label>
+                           <input type="text" class="form-control" id="ownerName" value="{{ Auth::user()->nama ?? '' }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                           <label class="form-label fw-semibold" for="email">Email</label>
+                           <input type="email" class="form-control" id="email" value="{{ Auth::user()->email ?? '' }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                           <label class="form-label fw-semibold" for="status">Status marketplace</label>
+                           <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
+                              <option value="active" @selected(old('status', $marketplace->status ?? 'active') === 'active')>Aktif</option>
+                              <option value="inactive" @selected(old('status', $marketplace->status ?? 'active') === 'inactive')>Nonaktif</option>
+                           </select>
+                           @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-12">
+                           <label class="form-label fw-semibold" for="description">Deskripsi toko</label>
+                           <textarea class="form-control @error('deskripsi') is-invalid @enderror" id="description" name="deskripsi" rows="3" maxlength="1000" placeholder="Ceritakan produk yang Anda jual">{{ old('deskripsi', $marketplace->deskripsi ?? '') }}</textarea>
+                           @error('deskripsi')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-4">
+                           <label class="form-label fw-semibold" for="phone">Nomor WhatsApp</label>
+                           <input type="tel" class="form-control" id="phone" value="{{ Auth::user()->phone ?? '-' }}" readonly>
+                           <div class="form-text">Diambil dari profil akun.</div>
+                        </div>
+                     <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1" aria-hidden="true"></i>{{ $marketplace ? 'Simpan Perubahan' : 'Buat Marketplace' }}</button>
                      </div>
-                     <div class="col-md-6">
-                        <label class="form-label fw-semibold" for="ownerName">Pemilik</label>
-                        <input type="text" class="form-control" id="ownerName" value="{{ Auth::user()->nama ?? '' }}" readonly>
-                     </div>
-                     <div class="col-md-6">
-                        <label class="form-label fw-semibold" for="email">Email</label>
-                        <input type="email" class="form-control" id="email" value="{{ Auth::user()->email ?? '' }}" readonly>
-                     </div>
-                     <div class="col-md-6">
-                        <label class="form-label fw-semibold" for="phone">Nomor WhatsApp</label>
-                        <input type="tel" class="form-control" id="phone" placeholder="Masukkan nomor WhatsApp">
-                     </div>
-                     <div class="col-12">
-                        <label class="form-label fw-semibold" for="description">Deskripsi toko</label>
-                        <textarea class="form-control" id="description" rows="3" placeholder="Ceritakan produk yang Anda jual"></textarea>
-                     </div>
-                  </div>
-                  <div class="d-flex justify-content-end mt-4">
-                     <button type="button" class="btn btn-primary">{{ __('Save Changes') }}</button>
-                  </div>
+                  </form>
                </div>
             </section>
 
@@ -98,14 +119,26 @@
                      @forelse ($products as $product)
                         <div class="col-6 col-md-4">
                            <div class="border rounded overflow-hidden h-100">
-                              <div class="ratio ratio-1x1 bg-light d-flex align-items-center justify-content-center">
+                              <div class="product-image-frame rounded-0">
                                  @if ($product->gambar)
                                     <img src="{{ asset('storage/' . $product->gambar) }}" alt="{{ $product->nama }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
                                  @else
                                     <img src="{{ asset('img/balnkLogo.png') }}" alt="{{ $product->nama }}" class="img-fluid w-100 h-100" style="object-fit: contain;">
                                  @endif
                               </div>
-                              <div class="p-3"><strong class="d-block text-truncate" title="{{ $product->nama }}">{{ $product->nama }}</strong><small class="text-muted">Rp{{ number_format($product->harga, 0, ',', '.') }}</small></div>
+                              <div class="p-3">
+                                 <strong class="d-block text-truncate" title="{{ $product->nama }}">{{ $product->nama }}</strong>
+                                 <small class="text-muted d-block">Rp{{ number_format($product->harga, 0, ',', '.') }}</small>
+                                 <small class="text-muted d-block text-truncate">{{ $product->marketplace?->nama ?? 'Tanpa marketplace' }}</small>
+                                 <div class="d-flex gap-2 mt-2">
+                                    <a href="{{ route('product.edit', $product) }}" class="btn btn-outline-primary btn-sm">Edit</a>
+                                    <form method="POST" action="{{ route('product.destroy', $product) }}" onsubmit="return confirm('Hapus produk ini?');">
+                                       @csrf
+                                       @method('DELETE')
+                                       <button type="submit" class="btn btn-outline-danger btn-sm">Hapus</button>
+                                    </form>
+                                 </div>
+                              </div>
                            </div>
                         </div>
                      @empty
@@ -172,7 +205,7 @@
                   <div class="d-flex flex-column gap-3">
                      <article class="border rounded p-3">
                         <div class="row g-3 align-items-center">
-                           <div class="col-3"><div class="ratio ratio-1x1 rounded bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto</div></div>
+                           <div class="col-3"><div class="product-image-frame rounded bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto</div></div>
                            <div class="col-9">
                               <div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><strong class="d-block">Airsoft Tactical Vest</strong><small class="text-muted">#ORD-1024 · 26 Agustus 2026</small></div><span class="badge bg-warning text-dark align-self-start">Menunggu diproses</span></div>
                               <div class="row g-2 small"><div class="col-12 col-md-5"><span class="text-muted d-block">Pembeli</span><strong>Raka Pratama</strong></div><div class="col-6 col-md-2"><span class="text-muted d-block">Jumlah</span><strong>1 item</strong></div><div class="col-6 col-md-5"><span class="text-muted d-block">Total</span><strong>Rp450.000</strong></div><div class="col-12 pt-2 border-top mt-2"><i class="fas fa-motorcycle text-primary me-1"></i><span class="text-muted">Metode:</span> <strong>Kurir lokal</strong></div></div>
@@ -182,7 +215,7 @@
 
                      <article class="border rounded p-3">
                         <div class="row g-3 align-items-center">
-                           <div class="col-3"><div class="ratio ratio-1x1 rounded bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto</div></div>
+                           <div class="col-3"><div class="product-image-frame rounded bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto</div></div>
                            <div class="col-9">
                               <div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><strong class="d-block">Red Dot Sight 1x20</strong><small class="text-muted">#ORD-1023 · 25 Agustus 2026</small></div><span class="badge bg-info text-dark align-self-start">Siap diambil</span></div>
                               <div class="row g-2 small"><div class="col-12 col-md-5"><span class="text-muted d-block">Pembeli</span><strong>Dimas Saputra</strong></div><div class="col-6 col-md-2"><span class="text-muted d-block">Jumlah</span><strong>2 item</strong></div><div class="col-6 col-md-5"><span class="text-muted d-block">Total</span><strong>Rp700.000</strong></div><div class="col-12 pt-2 border-top mt-2"><i class="fas fa-store text-primary me-1"></i><span class="text-muted">Metode:</span> <strong>Ambil di lokasi penjual</strong></div></div>
@@ -192,7 +225,7 @@
 
                      <article class="border rounded p-3">
                         <div class="row g-3 align-items-center">
-                           <div class="col-3"><div class="ratio ratio-1x1 rounded bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto</div></div>
+                           <div class="col-3"><div class="product-image-frame rounded bg-light d-flex align-items-center justify-content-center text-muted small text-center">Foto</div></div>
                            <div class="col-9">
                               <div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><strong class="d-block">BB Loader Magazine</strong><small class="text-muted">#ORD-1022 · 24 Agustus 2026</small></div><span class="badge bg-success align-self-start">Selesai</span></div>
                               <div class="row g-2 small"><div class="col-12 col-md-5"><span class="text-muted d-block">Pembeli</span><strong>Nadia Kusuma</strong></div><div class="col-6 col-md-2"><span class="text-muted d-block">Jumlah</span><strong>1 item</strong></div><div class="col-6 col-md-5"><span class="text-muted d-block">Total</span><strong>Rp125.000</strong></div><div class="col-12 pt-2 border-top mt-2"><i class="fas fa-motorcycle text-primary me-1"></i><span class="text-muted">Metode:</span> <strong>Kurir lokal</strong></div></div>
@@ -236,6 +269,6 @@
    </div>
    </div>
    
-            
 @endsection
+
 

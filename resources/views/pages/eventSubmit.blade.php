@@ -21,14 +21,19 @@
 
             <div class="col-12 d-flex justify-content-between align-items-center mb-3">
                <h4 class="mb-0">{{ $isEdit ? 'Edit Event' : 'Poster Event' }}</h4>
-               <span class="badge bg-light text-dark border">Maksimal {{ $maxPoster }} poster</span>
+               <div class="text-end">
+                  <span class="badge bg-light text-dark border">Maksimal {{ $maxPoster }} poster</span>
+                  <div class="form-text">Saran ukuran poster: 800 x 1200 px (rasio 2:3). Format JPG, PNG, WEBP, atau GIF, maksimal 2 MB per file.</div>
+               </div>
             </div>
 
-            <div id="cardContainer" class="col-12 d-flex flex-wrap">
+            <div id="posterCardContainer" class="col-12 d-flex flex-wrap">
                @forelse($existingPosters as $index => $poster)
                <div class="col-md-3 mt-2 mb-3 card-item" data-card-id="{{ $index + 1 }}">
                   <div class="card" style="width: 18rem;">
-                     <img src="{{ asset('storage/' . $poster) }}" class="card-img-top" alt="Poster event">
+                     <div class="poster-upload-frame">
+                        <img src="{{ asset('storage/' . $poster) }}" alt="Poster event">
+                     </div>
                      <div class="card-body">
                         <button type="button" class="btn btn-outline-primary btn-upload" data-id="{{ $index + 1 }}">Ganti File</button>
                         <input type="file" id="fileInputButton{{ $index + 1 }}" name="poster[]" class="d-none poster-input" accept="image/*">
@@ -39,7 +44,9 @@
                @empty
                <div class="col-md-3 mt-2 mb-3 card-item" data-card-id="1">
                   <div class="card" style="width: 18rem;">
-                     <img src="{{ asset('img/balnkLogo.png') }}" class="card-img-top" alt="Gambar 1">
+                     <div class="poster-upload-frame">
+                        <img src="{{ asset('img/balnkLogo.png') }}" alt="Gambar 1">
+                     </div>
                      <div class="card-body">
                         <button type="button" class="btn btn-outline-primary btn-upload" data-id="1">Upload File</button>
                         <input type="file" id="fileInputButton1" name="poster[]" class="d-none poster-input" accept="image/*">
@@ -50,7 +57,7 @@
                @endforelse
 
                <div class="col-md-3 mt-2 mb-3">
-                  <button type="button" id="addCardBtn" class="btn-outline-primary d-flex flex-column align-items-center justify-content-center" style="width: 18rem; height: 18rem; border: 2px dashed #0d6efd; border-radius: 8px; background: transparent;">
+                  <button type="button" id="addPosterBtn" class="btn-outline-primary d-flex flex-column align-items-center justify-content-center poster-upload-frame" style="border: 2px dashed #0d6efd; border-radius: 8px; background: transparent;">
                      <img src="{{ asset('icon/basil--add-outline.png') }}" alt="Tambah" style="width: 50px; height: 50px;">
                   </button>
                </div>
@@ -127,51 +134,65 @@
 @push('scripts')
 <script>
    const MAX_POSTERS = {{ $maxPoster }};
-   let currentCardCount = document.querySelectorAll('.card-item').length;
-   const addCardBtn = document.getElementById('addCardBtn');
+   const addPosterBtn = document.getElementById('addPosterBtn');
+   const posterContainer = document.getElementById('posterCardContainer');
+
+   function getCardItems() {
+      return document.querySelectorAll('#posterCardContainer .card-item');
+   }
 
    function refreshAddButton() {
-      addCardBtn.style.display = currentCardCount >= MAX_POSTERS ? 'none' : 'flex';
+      if (!addPosterBtn || !addPosterBtn.parentElement) return;
+      const count = getCardItems().length;
+      addPosterBtn.parentElement.style.display = count >= MAX_POSTERS ? 'none' : '';
    }
 
    function prepareSubmit() {
-      const cardData = Array.from(document.querySelectorAll('.card-item')).map(card => ({
+      const cardData = Array.from(getCardItems()).map(card => ({
          id: card.dataset.cardId,
-         hasFile: card.querySelector('.poster-input')?.files?.length > 0
+         hasFile: (card.querySelector('.poster-input')?.files?.length || 0) > 0
       }));
-      document.getElementById('cardData').value = JSON.stringify(cardData);
+      const cardDataInput = document.getElementById('cardData');
+      if (cardDataInput) {
+         cardDataInput.value = JSON.stringify(cardData);
+      }
    }
 
    function resetAllCards() {
-      const cards = document.querySelectorAll('.card-item');
+      const cards = getCardItems();
       cards.forEach((card, index) => {
          if (index === 0) {
             const input = card.querySelector('.poster-input');
-            input.value = '';
-            card.querySelector('img').src = '{{ asset('img/balnkLogo.png') }}';
+            if (input) input.value = '';
+            const img = card.querySelector('img');
+            if (img) img.src = '{{ asset('img/balnkLogo.png') }}';
          } else {
             card.remove();
          }
       });
-      currentCardCount = 1;
       refreshAddButton();
    }
+
+   window.prepareSubmit = prepareSubmit;
+   window.resetAllCards = resetAllCards;
 
    document.addEventListener('click', function (event) {
       const uploadButton = event.target.closest('.btn-upload');
       if (uploadButton) {
          const inputId = 'fileInputButton' + uploadButton.dataset.id;
-         document.getElementById(inputId).click();
+         const targetInput = document.getElementById(inputId);
+         if (targetInput) targetInput.click();
+         return;
       }
 
       const removeButton = event.target.closest('.btn-remove');
       if (removeButton) {
          const card = removeButton.closest('.card-item');
-         if (document.querySelectorAll('.card-item').length > 1) {
+         if (card && getCardItems().length > 1) {
             card.remove();
-            currentCardCount = document.querySelectorAll('.card-item').length;
             refreshAddButton();
          }
+         return;
       }
    });
 
@@ -182,40 +203,68 @@
       const reader = new FileReader();
       reader.onload = function (e) {
          const card = input.closest('.card-item');
-         const img = card.querySelector('img');
-         img.src = e.target.result;
+         const img = card ? card.querySelector('img') : null;
+         if (img) img.src = e.target.result;
       };
       reader.readAsDataURL(input.files[0]);
    });
 
-   addCardBtn.addEventListener('click', function () {
-      if (currentCardCount >= MAX_POSTERS) {
-         return;
-      }
+   let nextCardId = Math.max(0, ...Array.from(getCardItems()).map(c => parseInt(c.dataset.cardId, 10) || 0)) + 1;
 
-      const template = document.querySelector('.card-item');
-      const clone = template.cloneNode(true);
-      const newId = currentCardCount + 1;
-      clone.dataset.cardId = newId;
-      clone.querySelector('.btn-upload').dataset.id = newId;
-      clone.querySelector('.btn-remove').dataset.id = newId;
+   if (addPosterBtn) {
+      addPosterBtn.addEventListener('click', function (e) {
+         e.preventDefault();
+         const currentCards = getCardItems();
+         if (currentCards.length >= MAX_POSTERS) {
+            return;
+         }
 
-      const input = clone.querySelector('.poster-input');
-      input.id = 'fileInputButton' + newId;
-      input.name = 'poster[]';
-      input.value = '';
-      clone.querySelector('img').src = '{{ asset('img/balnkLogo.png') }}';
+         const template = currentCards[0] || document.querySelector('.card-item');
+         if (!template) return;
 
-      addCardBtn.parentElement.before(clone);
-      currentCardCount++;
-      refreshAddButton();
-   });
+         const clone = template.cloneNode(true);
+         const newId = nextCardId++;
+         clone.dataset.cardId = newId;
+
+         const uploadBtn = clone.querySelector('.btn-upload');
+         if (uploadBtn) {
+            uploadBtn.dataset.id = newId;
+            uploadBtn.textContent = 'Upload File';
+         }
+
+         const removeBtn = clone.querySelector('.btn-remove');
+         if (removeBtn) {
+            removeBtn.dataset.id = newId;
+         }
+
+         const input = clone.querySelector('.poster-input');
+         if (input) {
+            input.id = 'fileInputButton' + newId;
+            input.name = 'poster[]';
+            input.value = '';
+         }
+
+         const img = clone.querySelector('img');
+         if (img) {
+            img.src = '{{ asset('img/balnkLogo.png') }}';
+            img.alt = 'Poster ' + newId;
+         }
+
+         addPosterBtn.parentElement.before(clone);
+         refreshAddButton();
+      });
+   }
 
    const deskripsiEvent = document.getElementById('deskripsi');
    const deskripsiCounter = document.getElementById('deskripsiCounter');
 
-   deskripsiEvent.addEventListener('input', function () {
-      deskripsiCounter.textContent = this.value.length;
-   });
+   if (deskripsiEvent && deskripsiCounter) {
+      deskripsiCounter.textContent = deskripsiEvent.value.length;
+      deskripsiEvent.addEventListener('input', function () {
+         deskripsiCounter.textContent = this.value.length;
+      });
+   }
+
+   refreshAddButton();
 </script>
 @endpush

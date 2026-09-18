@@ -101,13 +101,13 @@
 
         <h5 class="fw-bold mb-3 marketplace-section-title">{{ __('Latest Products') }}</h5>
 
-        @if ($products->isNotEmpty())
+
             <div class="row justify-content-center g-2 mb-4">
                 @foreach ($products as $produk)
                     <div class="col-auto mb-5">
-                        <a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark">
+                        <a href="{{ route('isiMarketplace', $produk->id) }}" class="text-decoration-none text-dark">
                             <div class="card h-100" style="width: 13rem;">
-                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                                <div class="card-img-top product-image-frame">
                                     @if ($produk->gambar)
                                         <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
                                     @else
@@ -128,82 +128,5 @@
                     </div>
                 @endforeach
             </div>
-        @endif
-
-        @if(!request()->filled('province') && !request()->filled('city'))
-        @php
-            $produkMarketplace = [
-                [
-                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P1.jpg',
-                    'nama' => 'Tactical Vest Modular',
-                    'harga' => 350000,
-                    'merk' => 'EmersonGear',
-                    'jenis' => 'Accessories',
-                    'wilayah' => 'Jakarta Selatan',
-                ],
-                [
-                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P2.jpg',
-                    'nama' => 'M4 Custom AEG',
-                    'harga' => 2850000,
-                    'merk' => 'M4',
-                    'jenis' => 'Unit',
-                    'wilayah' => 'Bandung',
-                ],
-                [
-                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P3.jpg',
-                    'nama' => 'M4 CQB AEG',
-                    'harga' => 3200000,
-                    'merk' => 'M4',
-                    'jenis' => 'Unit',
-                    'wilayah' => 'Surabaya',
-                ],
-                [
-                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P4.jpg',
-                    'nama' => 'Dcobra SIG556 custom',
-                    'harga' => 900000,
-                    'merk' => 'Dcobra',
-                    'jenis' => 'Unit',
-                    'wilayah' => 'Jakarta Timur',
-                ],
-                [
-                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P5.jpg',
-                    'nama' => 'Kokang Metal Hybrid-1 MAK47L',
-                    'harga' => 175000,
-                    'merk' => 'RCW',
-                    'jenis' => 'Sparepart',
-                    'wilayah' => 'Malang',
-                ],
-                [
-                    'gambar' => 'img/imgStatik/GambarProduk/G.S.P6.jpg',
-                    'nama' => 'Maple Leaf Hop Up Chamber',
-                    'harga' => 450000,
-                    'merk' => 'Maple Leaf',
-                    'jenis' => 'Sparepart',
-                    'wilayah' => 'Malang',
-                ],
-            ];
-        @endphp
-
-        <div class="row justify-content-center g-2">
-            @foreach ($produkMarketplace as $produk)
-                <div class="col-auto mb-5">
-                    <a href="{{ route('isiMarketplace') }}" class="text-decoration-none text-dark">
-                        <div class="card h-100" style="width: 13rem;">
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 280px; overflow: hidden; border-radius: 8px 8px 0 0;"><img src="{{ asset($produk['gambar']) }}" alt="{{ $produk['nama'] }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy"></div>
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title fw-bold text-truncate" title="{{ $produk['nama'] }}">{{ $produk['nama'] }}</h5>
-                                <ul class="list-unstyled small mb-2">
-                                    <li class="text-success fw-semibold mb-1">Rp {{ number_format($produk['harga'], 0, ',', '.') }}</li>
-                                    <li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">{{ $produk['merk'] }}</span></li>
-                                    <li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">{{ $produk['jenis'] }}</span></li>
-                                </ul>
-                                <div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $produk['wilayah'] }}</div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            @endforeach
-        </div>
-        @endif
     </div>
 @endsection

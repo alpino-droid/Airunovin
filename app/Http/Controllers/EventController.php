@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\event;
 use App\Models\Club;
+use App\Models\product;
 use App\Models\Provinsi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,8 +17,9 @@ class EventController extends Controller
         $eventsTerbaru = event::latest('created_at')->take(6)->get();
         $events = event::orderBy('tanggal', 'desc')->take(6)->get();
         $clubs = Club::latest()->take(6)->get();
+        $products = Product::orderBy('merk', 'desc')->take(6)->get();   
 
-        return view('pages.home', compact('eventsTerbaru', 'events', 'clubs'));
+        return view('pages.home', compact('eventsTerbaru', 'events', 'clubs', 'products'));
     }
 
     public function event(Request $request)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Marketplace;
 use App\Models\Provinsi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,22 +30,17 @@ class HalamanController extends Controller
         return view('pages.marketplace', compact('products', 'provinsi', 'cities'));
     }
 
-    public function isiMarketplace()
-    {
-        return view('pages.isiMarketplace');
-    }
+
 
     public function DM()
     {
-        $products = Product::where('id_user', Auth::id())->latest()->get();
+        $marketplaces = Marketplace::where('id_user', Auth::id())->withCount('products')->latest()->get();
+        $marketplace = $marketplaces->first();
+        $products = Product::where('id_user', Auth::id())->with('marketplace')->latest()->get();
 
-        return view('pages.dashboardMarketplace', compact('products'));
+        return view('pages.dashboardMarketplace', compact('products', 'marketplaces', 'marketplace'));
     }
 
-    public function productCreate()
-    {
-        return view('pages.productCreate');
-    }
 
     public function productStore(Request $request)
     {
@@ -57,6 +53,8 @@ class HalamanController extends Controller
             'stok' => 'required|integer|min:0',
             'lokasi' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
+            'payment_methods' => 'required|array|min:1',
+            'payment_methods.*' => 'in:QRIS,DANA,GoPay,Transfer Bank,COD',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 

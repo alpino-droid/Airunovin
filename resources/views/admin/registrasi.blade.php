@@ -19,7 +19,7 @@
                 <span class="pill success">+11%</span>
             </div>
             <div class="stat-label">Pendaftar</div>
-            <p class="stat-value">342</p>
+            <p class="stat-value">{{count($users)}}</p>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
@@ -66,40 +66,25 @@
                     <tr>
                         <th>Nama</th>
                         <th>Email</th>
-                        <th>Club</th>
-                        <th>Status</th>
+                        <th>Username</th>
+                        <th>Nomor Watsapp</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @foreach($users as $usr)
                     <tr>
-                        <td><span class="member-name">Aditya Pratama</span></td>
-                        <td>aditya@mail.com</td>
-                        <td>Ranger Squad</td>
-                        <td><span class="pill warning">Pending</span></td>
-                        <td><button class="btn btn-sm btn-outline-primary">Review</button></td>
+                        <td><span class="member-name">{{$usr->nama}}</span></td>
+                        <td>{{$usr->email}}</td>
+                        <td>{{$usr->username}}</td>
+                        <td>{{$usr->phone}}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">Detail</button>
+                            <button class="btn btn-sm btn-outline-primary">Ban</button>
+                            <button class="btn btn-sm btn-outline-primary">Hapus</button>
+                        </td>
                     </tr>
-                    <tr>
-                        <td><span class="member-name">Rizky Ananda</span></td>
-                        <td>rizky@mail.com</td>
-                        <td>Jakarta Tactical</td>
-                        <td><span class="pill success">Disetujui</span></td>
-                        <td><button class="btn btn-sm btn-outline-primary">Detail</button></td>
-                    </tr>
-                    <tr>
-                        <td><span class="member-name">Nadia Sari</span></td>
-                        <td>nadia@mail.com</td>
-                        <td>Night Ops Team</td>
-                        <td><span class="pill danger">Ditolak</span></td>
-                        <td><button class="btn btn-sm btn-outline-primary">Lihat</button></td>
-                    </tr>
-                    <tr>
-                        <td><span class="member-name">Fajar Yusuf</span></td>
-                        <td>fajar@mail.com</td>
-                        <td>Blue Horizon</td>
-                        <td><span class="pill warning">Pending</span></td>
-                        <td><button class="btn btn-sm btn-outline-primary">Review</button></td>
-                    </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>

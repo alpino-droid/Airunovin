@@ -28,9 +28,17 @@ class ClubController extends Controller
         return view('pages.club', compact('clubs', 'provinsi', 'cities'));
     }
 
-    public function isiClub()
+    public function isiClub(club $club)
     {
-        return view('pages.isiClub');
+        $clubs = Club::whereKeyNot($club->getKey())
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get();
+
+        $club->load('user');
+        $provinsi = Provinsi::find($club->id_provinsi);
+
+        return view('pages.isiClub', compact('club', 'clubs', 'provinsi'));
     }
 
     public function club()

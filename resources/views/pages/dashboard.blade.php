@@ -18,7 +18,7 @@
          
          <div class="mb-3 mt-5 d-grid">
             <button class="btn btn-outline-primary" id="uploadBtn">{{ __('Upload File') }}</button>
-            <input type="file" id="fileInput" class="d-none" accept="image/*">
+            <input type="file" id="fileInput" class="d-none" accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif">
          </div>
       </div>
 
@@ -33,7 +33,12 @@
                       id="profile_picture" 
                       name="profile_picture" 
                       class="d-none" 
-                      accept="image/*">
+                      accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif">
+               @error('profile_picture')
+                  <div class="col-12">
+                     <div class="alert alert-danger mb-0">{{ $message }}</div>
+                  </div>
+               @enderror
 
                <div class="col-md-6">
                   <label for="username" class="form-label">{{ __('Username') }}</label>
@@ -175,7 +180,7 @@
                   <article class="border rounded p-3">
                      <div class="row g-3 align-items-center">
                         <div class="col-4 col-sm-3">
-                           <div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center text-muted small text-center"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P1.jpg') }}" alt=""></div>
+                           <div class="product-image-frame rounded border text-muted small text-center"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P1.jpg') }}" alt=""></div>
                         </div>
                         <div class="col-8 col-sm-9">
                            <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
@@ -195,7 +200,7 @@
                   <article class="border rounded p-3">
                      <div class="row g-3 align-items-center">
                         <div class="col-4 col-sm-3">
-                           <div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center text-muted small text-center"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P6.jpg') }}" alt=""></div>
+                           <div class="product-image-frame rounded border text-muted small text-center"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P6.jpg') }}" alt=""></div>
                         </div>
                         <div class="col-8 col-sm-9">
                            <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
@@ -232,7 +237,7 @@
                      <article class="border rounded p-3">
                         <div class="row g-3 align-items-center">
                            <div class="col-4">
-                              <div class="ratio ratio-1x1 rounded bg-light border d-flex align-items-center justify-content-center text-muted small text-center overflow-hidden">
+                              <div class="standard-poster-frame rounded border text-muted small text-center">
                                  @if($event->poster)
                                     <img src="{{ asset('storage/' . $event->poster[0]) }}" alt="Poster {{ $event->nama }}" class="w-100 h-100 object-fit-cover">
                                  @else
