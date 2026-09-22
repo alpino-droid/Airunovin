@@ -63,6 +63,7 @@ class clubSeeder extends Seeder
                 'deskripsi' => $clubData['deskripsi'],
                 'gform_link' => $clubData['gform_link'],
                 'logo' => $clubData['logo'],
+                'status' => 'diterima',
             ]);
         }
     }

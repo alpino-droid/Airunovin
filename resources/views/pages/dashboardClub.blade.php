@@ -3,7 +3,6 @@
 @section('title', 'Profil Club')
 
 @section('content')
-@php($user = Auth::user())
 <div class="container-fluid px-3 px-lg-5 py-4">
    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
       <div>

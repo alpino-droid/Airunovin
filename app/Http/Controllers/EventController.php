@@ -14,10 +14,10 @@ class EventController extends Controller
 {
     public function home()
     {
-        $eventsTerbaru = event::latest('created_at')->take(6)->get();
-        $events = event::orderBy('tanggal', 'desc')->take(6)->get();
-        $clubs = Club::latest()->take(6)->get();
-        $products = Product::orderBy('merk', 'desc')->take(6)->get();   
+        $eventsTerbaru = event::where('status', 'diterima')->latest('created_at')->take(6)->get();
+        $events = event::where('status', 'diterima')->orderBy('tanggal', 'desc')->take(6)->get();
+        $clubs = Club::where('status', 'diterima')->latest()->take(6)->get();
+        $products = Product::where('status', 'diterima')->orderBy('merk', 'desc')->take(6)->get();   
 
         return view('pages.home', compact('eventsTerbaru', 'events', 'clubs', 'products'));
     }
@@ -25,7 +25,7 @@ class EventController extends Controller
     public function event(Request $request)
     {
         $provinsi = Provinsi::orderBy('provinsi')->get();
-        $query = event::query();
+        $query = event::query()->where('status', 'diterima');
 
         if ($request->filled('province')) {
             $query->where('id_provinsi', $request->integer('province'));
@@ -34,15 +34,41 @@ class EventController extends Controller
             $query->where('kota', $request->string('city'));
         }
 
+        if ($request->filled('search') || $request->filled('q')) {
+            $search = trim((string) ($request->input('search') ?? $request->input('q')));
+            $terms = array_filter(explode(' ', $search), fn($t) => strlen($t) >= 2);
+
+            $query->where(function ($q) use ($search, $terms) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('deskripsi', 'like', "%{$search}%")
+                  ->orWhere('penyelenggara', 'like', "%{$search}%")
+                  ->orWhere('lokasi', 'like', "%{$search}%")
+                  ->orWhere('kota', 'like', "%{$search}%");
+
+                foreach ($terms as $term) {
+                    $q->orWhere('nama', 'like', "%{$term}%")
+                      ->orWhere('deskripsi', 'like', "%{$term}%")
+                      ->orWhere('kota', 'like', "%{$term}%");
+                }
+            });
+        }
+
         $events = $query->orderBy('tanggal', 'desc')->get();
-        $cities = event::query()->whereNotNull('kota')->distinct()->orderBy('kota')->pluck('kota');
+        $cities = event::query()->where('status', 'diterima')->whereNotNull('kota')->distinct()->orderBy('kota')->pluck('kota');
 
         return view('pages.event', compact('events', 'provinsi', 'cities'));
     }
 
     public function isiEvent(event $event)
     {
-        $events = event::whereKeyNot($event->getKey())
+        if ($event->status !== 'diterima') {
+            if (!Auth::check() || (Auth::id() !== $event->id_user && !Auth::user()->isAdmin())) {
+                abort(404, 'Event belum disetujui atau tidak tersedia.');
+            }
+        }
+
+        $events = event::where('status', 'diterima')
+            ->whereKeyNot($event->getKey())
             ->orderBy('tanggal', 'desc')
             ->take(6)
             ->get();

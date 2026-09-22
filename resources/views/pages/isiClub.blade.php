@@ -117,15 +117,28 @@
                     </div>
                     <a href="{{ route('club') }}" class="small text-decoration-none">Lihat semua</a>
                 </div>
-                <div class="row g-3">
+                <div class="row justify-content-center g-2">
                     @foreach($clubs as $relatedClub)
-                        <div class="col-12 col-sm-6 col-lg-4">
-                            <a href="{{ route('isiClub', $relatedClub) }}" class="club-detail__panel rounded-3 p-3 d-flex align-items-center gap-3 text-decoration-none text-dark h-100">
-                                <img src="{{ $relatedClub->logo_url }}" alt="Logo {{ $relatedClub->nama }}" width="56" height="56" class="rounded-2 object-fit-cover bg-light">
-                                <span class="min-w-0">
-                                    <strong class="d-block text-truncate">{{ $relatedClub->nama }}</strong>
-                                    <small class="text-muted">{{ $relatedClub->city ?: 'Lokasi belum diisi' }}</small>
-                                </span>
+                        <div class="col-auto mb-2">
+                            <a href="{{ route('isiClub', $relatedClub) }}" class="text-decoration-none text-dark">
+                                <div class="card h-100" style="width: 13rem;">
+                                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                                        <img src="{{ $relatedClub?->logo_url ?? asset('img/balnkLogo.png') }}" alt="Organization logo" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
+                                    </div>
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title fw-bold text-truncate" title="{{ $relatedClub->nama }}">{{ $relatedClub->nama }}</h5>
+                                        <ul class="list-unstyled small mb-0">
+                                            <li class="mb-1">
+                                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-geo-alt" aria-hidden="true"></i></span>
+                                                <span class="text-muted">{{ $relatedClub->city}}</span>
+                                            </li>
+                                            <li>
+                                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-building" aria-hidden="true"></i></span>
+                                                <span class="text-muted">{{ $relatedClub->induk_organisasi}}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </a>
                         </div>
                     @endforeach

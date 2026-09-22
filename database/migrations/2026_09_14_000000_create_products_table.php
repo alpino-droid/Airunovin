@@ -14,12 +14,16 @@ return new class extends Migration
             $table->string('nama');
             $table->unsignedBigInteger('harga');
             $table->string('merk');
-            $table->string('jenis');
+            $table->enum('unit', ['rifle', 'shootgun', 'macinegun', 'sniper', 'handgun'])->nullable();
+            $table->string('sparepart')->nullable();
+            $table->string('aksesoris')->nullable();
+            $table->string('jenis')->nullable();
             $table->string('kondisi');
             $table->unsignedInteger('stok')->default(1);
             $table->string('lokasi');
             $table->text('deskripsi')->nullable();
             $table->string('gambar')->nullable();
+            $table->enum('status', ['panding', 'tolak', 'diterima'])->default('panding');
             $table->timestamps();
         });
     }

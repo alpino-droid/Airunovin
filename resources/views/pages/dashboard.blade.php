@@ -24,6 +24,12 @@
 
       <div class="col-8">
          <div class="mt-3">
+            @if(session('success'))
+               <div class="alert alert-success alert-dismissible fade show" role="alert">
+                  {{ session('success') }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+               </div>
+            @endif
             <form id="profileForm" class="row g-3" method="POST" action="{{ route('profil.update') }}" enctype="multipart/form-data">
                @csrf
                @method('PUT')
@@ -90,44 +96,16 @@
                </div>
 
                <div class="col-md-6">
-                  <label for="province" class="form-label">{{ __('Province') }}</label>
-                  <select id="province" name="province" class="form-select @error('province') is-invalid @enderror">
+                  <label for="id_provinsi" class="form-label">{{ __('Province') }}</label>
+                  <select id="id_provinsi" name="id_provinsi" class="form-select @error('id_provinsi') is-invalid @enderror">
                      <option value="">Pilih Provinsi...</option>
-                     <option value="Aceh" {{ old('province', $user->province) == 'Aceh' ? 'selected' : '' }}>Aceh</option>
-                     <option value="Bali" {{ old('province', $user->province) == 'Bali' ? 'selected' : '' }}>Bali</option>
-                     <option value="Banten" {{ old('province', $user->province) == 'Banten' ? 'selected' : '' }}>Banten</option>
-                     <option value="Bengkulu" {{ old('province', $user->province) == 'Bengkulu' ? 'selected' : '' }}>Bengkulu</option>
-                     <option value="DKI Jakarta" {{ old('province', $user->province) == 'DKI Jakarta' ? 'selected' : '' }}>DKI Jakarta</option>
-                     <option value="Jambi" {{ old('province', $user->province) == 'Jambi' ? 'selected' : '' }}>Jambi</option>
-                     <option value="Jawa Barat" {{ old('province', $user->province) == 'Jawa Barat' ? 'selected' : '' }}>Jawa Barat</option>
-                     <option value="Jawa Tengah" {{ old('province', $user->province) == 'Jawa Tengah' ? 'selected' : '' }}>Jawa Tengah</option>
-                     <option value="Jawa Timur" {{ old('province', $user->province) == 'Jawa Timur' ? 'selected' : '' }}>Jawa Timur</option>
-                     <option value="Kalimantan Barat" {{ old('province', $user->province) == 'Kalimantan Barat' ? 'selected' : '' }}>Kalimantan Barat</option>
-                     <option value="Kalimantan Selatan" {{ old('province', $user->province) == 'Kalimantan Selatan' ? 'selected' : '' }}>Kalimantan Selatan</option>
-                     <option value="Kalimantan Tengah" {{ old('province', $user->province) == 'Kalimantan Tengah' ? 'selected' : '' }}>Kalimantan Tengah</option>
-                     <option value="Kalimantan Timur" {{ old('province', $user->province) == 'Kalimantan Timur' ? 'selected' : '' }}>Kalimantan Timur</option>
-                     <option value="Kalimantan Utara" {{ old('province', $user->province) == 'Kalimantan Utara' ? 'selected' : '' }}>Kalimantan Utara</option>
-                     <option value="Kepulauan Bangka Belitung" {{ old('province', $user->province) == 'Kepulauan Bangka Belitung' ? 'selected' : '' }}>Kepulauan Bangka Belitung</option>
-                     <option value="Kepulauan Riau" {{ old('province', $user->province) == 'Kepulauan Riau' ? 'selected' : '' }}>Kepulauan Riau</option>
-                     <option value="Lampung" {{ old('province', $user->province) == 'Lampung' ? 'selected' : '' }}>Lampung</option>
-                     <option value="Maluku" {{ old('province', $user->province) == 'Maluku' ? 'selected' : '' }}>Maluku</option>
-                     <option value="Maluku Utara" {{ old('province', $user->province) == 'Maluku Utara' ? 'selected' : '' }}>Maluku Utara</option>
-                     <option value="Nusa Tenggara Barat" {{ old('province', $user->province) == 'Nusa Tenggara Barat' ? 'selected' : '' }}>Nusa Tenggara Barat</option>
-                     <option value="Nusa Tenggara Timur" {{ old('province', $user->province) == 'Nusa Tenggara Timur' ? 'selected' : '' }}>Nusa Tenggara Timur</option>
-                     <option value="Papua" {{ old('province', $user->province) == 'Papua' ? 'selected' : '' }}>Papua</option>
-                     <option value="Papua Barat" {{ old('province', $user->province) == 'Papua Barat' ? 'selected' : '' }}>Papua Barat</option>
-                     <option value="Riau" {{ old('province', $user->province) == 'Riau' ? 'selected' : '' }}>Riau</option>
-                     <option value="Sulawesi Barat" {{ old('province', $user->province) == 'Sulawesi Barat' ? 'selected' : '' }}>Sulawesi Barat</option>
-                     <option value="Sulawesi Selatan" {{ old('province', $user->province) == 'Sulawesi Selatan' ? 'selected' : '' }}>Sulawesi Selatan</option>
-                     <option value="Sulawesi Tengah" {{ old('province', $user->province) == 'Sulawesi Tengah' ? 'selected' : '' }}>Sulawesi Tengah</option>
-                     <option value="Sulawesi Tenggara" {{ old('province', $user->province) == 'Sulawesi Tenggara' ? 'selected' : '' }}>Sulawesi Tenggara</option>
-                     <option value="Sulawesi Utara" {{ old('province', $user->province) == 'Sulawesi Utara' ? 'selected' : '' }}>Sulawesi Utara</option>
-                     <option value="Sumatera Barat" {{ old('province', $user->province) == 'Sumatera Barat' ? 'selected' : '' }}>Sumatera Barat</option>
-                     <option value="Sumatera Selatan" {{ old('province', $user->province) == 'Sumatera Selatan' ? 'selected' : '' }}>Sumatera Selatan</option>
-                     <option value="Sumatera Utara" {{ old('province', $user->province) == 'Sumatera Utara' ? 'selected' : '' }}>Sumatera Utara</option>
-                     <option value="Yogyakarta" {{ old('province', $user->province) == 'Yogyakarta' ? 'selected' : '' }}>Yogyakarta</option>
+                     @foreach($provinsi ?? [] as $prov)
+                        <option value="{{ $prov->id }}" {{ (string) old('id_provinsi', $user->id_provinsi) === (string) $prov->id || old('id_provinsi', $user->id_provinsi) === $prov->provinsi || old('province', $user->province) === $prov->provinsi ? 'selected' : '' }}>
+                           {{ $prov->provinsi }}
+                        </option>
+                     @endforeach
                   </select>
-                  @error('province')
+                  @error('id_provinsi')
                       <div class="invalid-feedback">{{ $message }}</div>
                   @enderror
                </div>
@@ -177,45 +155,52 @@
                </div>
 
                <div class="d-flex flex-column gap-3">
-                  <article class="border rounded p-3">
-                     <div class="row g-3 align-items-center">
-                        <div class="col-4 col-sm-3">
-                           <div class="product-image-frame rounded border text-muted small text-center"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P1.jpg') }}" alt=""></div>
-                        </div>
-                        <div class="col-8 col-sm-9">
-                           <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
-                              <div><strong class="d-block">Airsoft Tactical Vest</strong><small class="text-muted">#BELI-2048 · 26 Agustus 2026</small></div>
-                              <span class="badge bg-success align-self-start">Selesai</span>
+                  @forelse($purchases ?? [] as $purchase)
+                     <article class="border rounded p-3">
+                        <div class="row g-3 align-items-center">
+                           <div class="col-4 col-sm-3">
+                              <div class="product-image-frame rounded border text-muted small text-center overflow-hidden" style="aspect-ratio: 1/1; max-height: 120px;">
+                                 @php
+                                    $pImg = $purchase->gambar_produk ?? $purchase->product?->gambar;
+                                    $imgSrc = $pImg
+                                       ? (str_starts_with($pImg, 'http') ? $pImg : asset('storage/' . $pImg))
+                                       : asset('img/balnkLogo.png');
+                                 @endphp
+                                 <img src="{{ $imgSrc }}" alt="{{ $purchase->nama_produk }}" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
+                              </div>
                            </div>
-                           <div class="row g-2 small">
-                              <div class="col-12 col-md-5"><span class="text-muted d-block">Penjual</span><strong>Gear Tactical Store</strong></div>
-                              <div class="col-6 col-md-2"><span class="text-muted d-block">Jumlah</span><strong>1 item</strong></div>
-                              <div class="col-6 col-md-5"><span class="text-muted d-block">Total</span><strong>Rp450.000</strong></div>
-                              <div class="col-12 pt-2 border-top mt-2"><i class="fas fa-motorcycle text-primary me-1"></i><span class="text-muted">Pengiriman:</span> <strong>Kurir lokal</strong></div>
+                           <div class="col-8 col-sm-9">
+                              <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+                                 <div>
+                                    <strong class="d-block text-truncate" style="max-width: 250px;">
+                                       @if($purchase->product)
+                                          <a href="{{ route('isiMarketplace', $purchase->product->id) }}" class="text-decoration-none text-dark">{{ $purchase->nama_produk }}</a>
+                                       @else
+                                          {{ $purchase->nama_produk }}
+                                       @endif
+                                    </strong>
+                                    <small class="text-muted">{{ $purchase->order_code }} · {{ $purchase->created_at?->translatedFormat('d F Y') ?? date('d F Y') }}</small>
+                                 </div>
+                                 <span class="badge {{ $purchase->status_badge_class }} align-self-start">{{ $purchase->status }}</span>
+                              </div>
+                              <div class="row g-2 small">
+                                 <div class="col-12 col-md-5"><span class="text-muted d-block">Penjual</span><strong>{{ $purchase->nama_penjual ?: 'Penjual Airsoft' }}</strong></div>
+                                 <div class="col-6 col-md-2"><span class="text-muted d-block">Jumlah</span><strong>{{ $purchase->jumlah }} item</strong></div>
+                                 <div class="col-6 col-md-5"><span class="text-muted d-block">Total</span><strong>Rp {{ number_format($purchase->total_harga, 0, ',', '.') }}</strong></div>
+                                 <div class="col-12 pt-2 border-top mt-2">
+                                    <i class="fas fa-truck text-primary me-1"></i>
+                                    <span class="text-muted">Pengiriman:</span> <strong>{{ $purchase->metode_pengiriman ?: 'Kurir reguler' }}</strong>
+                                 </div>
+                              </div>
                            </div>
                         </div>
+                     </article>
+                  @empty
+                     <div class="text-center text-muted border rounded p-4">
+                        <p class="mb-2">Belum ada riwayat pembelian produk.</p>
+                        <a href="{{ route('marketplace') }}" class="btn btn-sm btn-primary">Belanja di Marketplace</a>
                      </div>
-                  </article>  
-   
-                  <article class="border rounded p-3">
-                     <div class="row g-3 align-items-center">
-                        <div class="col-4 col-sm-3">
-                           <div class="product-image-frame rounded border text-muted small text-center"><img src="{{ asset('img/imgStatik/GambarProduk/G.S.P6.jpg') }}" alt=""></div>
-                        </div>
-                        <div class="col-8 col-sm-9">
-                           <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
-                              <div><strong class="d-block">Maple Leaf Hop Up Chamber</strong><small class="text-muted">#BELI-2047 · 24 Agustus 2026</small></div>
-                              <span class="badge bg-info text-dark align-self-start">Siap diambil</span>
-                           </div>
-                           <div class="row g-2 small">
-                              <div class="col-12 col-md-5"><span class="text-muted d-block">Penjual</span><strong>Surabaya Airsoft Hub</strong></div>
-                              <div class="col-6 col-md-2"><span class="text-muted d-block">Jumlah</span><strong>1 item</strong></div>
-                              <div class="col-6 col-md-5"><span class="text-muted d-block">Total</span><strong>Rp350.000</strong></div>
-                              <div class="col-12 pt-2 border-top mt-2"><i class="fas fa-store text-primary me-1"></i><span class="text-muted">Pengambilan:</span> <strong>Lokasi penjual</strong></div>
-                           </div>
-                        </div>
-                     </div>
-                  </article>
+                  @endforelse
                </div>
             </div>
          </section>

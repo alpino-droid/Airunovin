@@ -18,7 +18,7 @@ class MarketplaceSeeder extends Seeder
                 [
                     'nama' => 'Marketplace ' . ($user->nama ?: $user->username),
                     'deskripsi' => 'Toko perlengkapan airsoft milik ' . ($user->nama ?: $user->username) . '.',
-                    'status' => 'active',
+                    'status' => 'diterima',
                 ]
             );
         }

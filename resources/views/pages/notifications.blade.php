@@ -33,6 +33,55 @@
         display: inline-block;
         flex-shrink: 0;
     }
+
+    /* Paginasi */
+    .pagination {
+        margin-bottom: 0;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .pagination .page-item .page-link {
+        border-radius: 8px !important;
+        font-size: 0.85rem;
+        min-width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #4b5563;
+        border: 1px solid #e2e8f0;
+        padding: 0 0.5rem;
+        transition: all 0.15s ease-in-out;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--deep-red, #8b1e1e);
+        border-color: var(--deep-red, #8b1e1e);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .pagination .page-item .page-link:hover:not(.active) {
+        background-color: #f1f5f9;
+        color: var(--deep-red, #8b1e1e);
+        border-color: #cbd5e1;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #94a3b8;
+        background-color: #f8fafc;
+        border-color: #e2e8f0;
+    }
+
+    /* Ukuran simbol panah '<' dan '>' paginasi */
+    .pagination .page-link svg,
+    nav svg {
+        width: 14px !important;
+        height: 14px !important;
+        max-width: 14px !important;
+        max-height: 14px !important;
+    }
 </style>
 @endpush
 
@@ -155,8 +204,8 @@
 
                     {{-- Paginasi jika lebih dari 1 halaman --}}
                     @if($notifications->hasPages())
-                        <div class="mt-4 d-flex justify-content-center">
-                            {{ $notifications->links() }}
+                        <div class="mt-4 pt-2 d-flex justify-content-center overflow-auto">
+                            {{ $notifications->links('pagination::bootstrap-5') }}
                         </div>
                     @endif
                 </div>

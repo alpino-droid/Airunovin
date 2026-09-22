@@ -109,53 +109,53 @@
                 </div>
             </div>
         </div>
-        <div class="row align-items-center">
-            <div class="col">
-            <div class="row">
-            <div class="row justify-content-center g-2">
-            @forelse($events as $evt)
-                <div class="col-auto mb-5">
-                    <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
-                        <div class="card h-100" style="width: 13rem;">
-                            <div class="card-img-top standard-poster-frame">
-                                @if($evt->poster && count($evt->poster) > 0)
-                                    @php $posters = $evt->poster; @endphp
-                                    <img src="{{ asset('storage/' . $posters[0]) }}" alt="Event poster" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
-                                @else
-                                    <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
-                                @endif
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title fw-bold text-truncate" title="{{ $evt->nama }}">{{ $evt->nama }}</h5>
-                                <ul class="list-unstyled small mb-2">
-                                    <li class="mb-1">
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
-                                        <span class="text-muted">{{ $evt->tanggal }}</span>
-                                    </li>
-                                    <li>
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-person" aria-hidden="true"></i></span>
-                                        <span class="text-muted">{{ $evt->penyelenggara }}</span>
-                                    </li>
-                                </ul>
-                                <div class="mt-auto pt-2 border-top">
-                                    <div class="text-muted">
-                                        <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-geo-alt" aria-hidden="true"></i></span>
-                                        <span>{{ $evt->kota }}</span>
+        @if($events->isNotEmpty())
+            <section class="mt-5" aria-labelledby="event-lainnya">
+                <div class="d-flex justify-content-between align-items-end mb-3">
+                    <div>
+                        <p class="text-uppercase text-muted small fw-semibold mb-1">Event lain</p>
+                        <h2 id="event-lainnya" class="h4 fw-bold mb-0">Event lainnya</h2>
+                    </div>
+                    <a href="{{ route('event') }}" class="small text-decoration-none">Lihat semua</a>
+                </div>
+                <div class="row justify-content-center g-2">
+                    @foreach($events as $evt)
+                        <div class="col-auto mb-5">
+                            <a href="{{ route('isiEvent', $evt) }}" class="text-decoration-none text-dark">
+                                <div class="card h-100" style="width: 13rem;">
+                                    <div class="card-img-top standard-poster-frame">
+                                        @if($evt->poster && count($evt->poster) > 0)
+                                            <img src="{{ asset('storage/' . $evt->poster[0]) }}" alt="Event poster" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                                        @else
+                                            <img src="https://static.wikitide.net/thefireriseswikiwiki/thumb/e/ec/The_fire_truly_rises.gif/200px-The_fire_truly_rises.gif" alt="Event thumbnail" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+                                        @endif
+                                    </div>
+                                    <div class="card-body d-flex flex-column">
+                                        <h5 class="card-title fw-bold text-truncate" title="{{ $evt->nama }}">{{ $evt->nama }}</h5>
+                                        <ul class="list-unstyled small mb-2">
+                                            <li class="mb-1">
+                                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
+                                                <span class="text-muted">{{ $evt->tanggal }}</span>
+                                            </li>
+                                            <li>
+                                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-person" aria-hidden="true"></i></span>
+                                                <span class="text-muted">{{ $evt->penyelenggara }}</span>
+                                            </li>
+                                        </ul>
+                                        <div class="mt-auto pt-2 border-top">
+                                            <div class="text-muted">
+                                                <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-geo-alt" aria-hidden="true"></i></span>
+                                                <span>{{ $evt->kota }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                    </a>
+                    @endforeach
                 </div>
-            @empty
-                <div class="col-12 text-center text-muted py-5">
-                    <p>{{ __('No events available') }}</p>
-                </div>
-            @endforelse
-        </div>
-        </div>
-            </div>
-        </div>
+            </section>
+        @endif
     </div>
 
     @if(count($posters) > 0)

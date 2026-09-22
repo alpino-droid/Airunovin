@@ -16,7 +16,7 @@ class eventSeeder extends Seeder
         event::query()->delete();
 
         foreach (eventFactory::posterEvents() as $eventData) {
-            event::factory()->create($eventData);
+            event::factory()->create(array_merge($eventData, ['status' => 'diterima']));
         }
     }
 }

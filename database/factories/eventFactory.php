@@ -100,6 +100,7 @@ class eventFactory extends Factory
 
         return array_merge($event, [
             'id_user' => $this->faker->randomElement(User::query()->pluck('id')->all()),
+            'status' => 'diterima',
         ]);
     }
 }

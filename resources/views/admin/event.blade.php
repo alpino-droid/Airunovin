@@ -60,7 +60,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon blue">✦</div>
+                <div class="stat-icon blue"><i class="bi bi-calendar-event fs-4"></i></div>
                 <span class="pill success">Total</span>
             </div>
             <div class="stat-label">Total Event</div>
@@ -70,7 +70,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon green">✓</div>
+                <div class="stat-icon green"><i class="bi bi-calendar-check fs-4"></i></div>
                 <span class="pill success">Aktif</span>
             </div>
             <div class="stat-label">Mendatang</div>
@@ -80,7 +80,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon orange">⏳</div>
+                <div class="stat-icon orange"><i class="bi bi-clock-history fs-4"></i></div>
                 <span class="pill warning">Selesai</span>
             </div>
             <div class="stat-label">Terlaksana</div>
@@ -90,7 +90,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon purple">📍</div>
+                <div class="stat-icon purple"><i class="bi bi-geo-alt fs-4"></i></div>
                 <span class="pill success">Wilayah</span>
             </div>
             <div class="stat-label">Kota Pelaksana</div>
@@ -169,45 +169,77 @@
                             @endif
                         </td>
                         <td>
-                            @if($isUpcoming)
-                                <span class="pill success">Mendatang</span>
-                            @else
-                                <span class="pill warning">Selesai</span>
-                            @endif
+                            <div class="mb-1">
+                                @if($evt->status === 'diterima' || $evt->status === 'terimakasih')
+                                    <span class="pill success">Diterima</span>
+                                @elseif($evt->status === 'tolak')
+                                    <span class="pill danger">Ditolak</span>
+                                @else
+                                    <span class="pill warning">Pending</span>
+                                @endif
+                            </div>
+                            <small class="text-muted d-block">
+                                {{ $isUpcoming ? 'Mendatang' : 'Selesai' }}
+                            </small>
                         </td>
-                        <td class="text-end">
+                        <td class="text-end" style="min-width: 250px;">
+                            {{-- Moderasi Status Cepat --}}
+                            @if(!in_array($evt->status, ['diterima', 'terimakasih']))
+                                <form action="{{ route('admin.event.status', $evt->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="diterima">
+                                    <button type="submit" class="btn btn-sm btn-success me-1" title="Terima / Setujui Event">
+                                        <i class="bi bi-check-lg"></i> Terima
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($evt->status !== 'tolak')
+                                <form action="{{ route('admin.event.status', $evt->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="tolak">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger me-1" title="Tolak Event" onclick="return confirm('Apakah Anda yakin ingin menolak event ini?')">
+                                        <i class="bi bi-x-lg"></i> Tolak
+                                    </button>
+                                </form>
+                            @endif
+
                             <button type="button" class="btn btn-sm btn-outline-secondary btn-detail-event me-1"
-                                    data-bs-toggle="modal" data-bs-target="#modalDetailEvent"
-                                    data-nama="{{ $evt->nama }}"
-                                    data-tanggal="{{ $evt->tanggal ? \Carbon\Carbon::parse($evt->tanggal)->translatedFormat('d F Y') : '-' }}"
-                                    data-penyelenggara="{{ $evt->penyelenggara }}"
-                                    data-kota="{{ $evt->kota }}"
-                                    data-lokasi="{{ $evt->lokasi ?? '-' }}"
-                                    data-provinsi="{{ $provNama }}"
-                                    data-htm="{{ $evt->htm !== null && $evt->htm > 0 ? 'Rp ' . number_format($evt->htm, 0, ',', '.') : 'Gratis' }}"
-                                    data-kelas="{{ $evt->kelasPertandingan ?? '-' }}"
-                                    data-sumber="{{ $evt->sumber ?? '-' }}"
-                                    data-deskripsi="{{ $evt->deskripsi ?? 'Tidak ada deskripsi.' }}"
-                                    data-posters='{{ $postersJson }}'
-                                    title="Detail Event">
-                                <i class="bi bi-eye"></i> Detail
+                                     data-bs-toggle="modal" data-bs-target="#modalDetailEvent"
+                                     data-nama="{{ $evt->nama }}"
+                                     data-tanggal="{{ $evt->tanggal ? \Carbon\Carbon::parse($evt->tanggal)->translatedFormat('d F Y') : '-' }}"
+                                     data-penyelenggara="{{ $evt->penyelenggara }}"
+                                     data-kota="{{ $evt->kota }}"
+                                     data-lokasi="{{ $evt->lokasi ?? '-' }}"
+                                     data-provinsi="{{ $provNama }}"
+                                     data-status="{{ $evt->status }}"
+                                     data-htm="{{ $evt->htm !== null && $evt->htm > 0 ? 'Rp ' . number_format($evt->htm, 0, ',', '.') : 'Gratis' }}"
+                                     data-kelas="{{ $evt->kelasPertandingan ?? '-' }}"
+                                     data-sumber="{{ $evt->sumber ?? '-' }}"
+                                     data-deskripsi="{{ $evt->deskripsi ?? 'Tidak ada deskripsi.' }}"
+                                     data-posters='{{ $postersJson }}'
+                                     title="Detail Event">
+                                 <i class="bi bi-eye"></i> Detail
                             </button>
 
                             <button type="button" class="btn btn-sm btn-outline-primary btn-edit-event me-1"
-                                    data-bs-toggle="modal" data-bs-target="#modalEditEvent"
-                                    data-id="{{ $evt->id }}"
-                                    data-nama="{{ $evt->nama }}"
-                                    data-tanggal="{{ $evt->tanggal }}"
-                                    data-penyelenggara="{{ $evt->penyelenggara }}"
-                                    data-lokasi="{{ $evt->lokasi }}"
-                                    data-id-provinsi="{{ $evt->id_provinsi }}"
-                                    data-kota="{{ $evt->kota }}"
-                                    data-sumber="{{ $evt->sumber }}"
-                                    data-htm="{{ $evt->htm }}"
-                                    data-kelas="{{ $evt->kelasPertandingan }}"
-                                    data-deskripsi="{{ $evt->deskripsi }}"
-                                    title="Edit Event">
-                                <i class="bi bi-pencil"></i> Edit
+                                     data-bs-toggle="modal" data-bs-target="#modalEditEvent"
+                                     data-id="{{ $evt->id }}"
+                                     data-nama="{{ $evt->nama }}"
+                                     data-tanggal="{{ $evt->tanggal }}"
+                                     data-penyelenggara="{{ $evt->penyelenggara }}"
+                                     data-lokasi="{{ $evt->lokasi }}"
+                                     data-id-provinsi="{{ $evt->id_provinsi }}"
+                                     data-kota="{{ $evt->kota }}"
+                                     data-status="{{ $evt->status }}"
+                                     data-sumber="{{ $evt->sumber }}"
+                                     data-htm="{{ $evt->htm }}"
+                                     data-kelas="{{ $evt->kelasPertandingan }}"
+                                     data-deskripsi="{{ $evt->deskripsi }}"
+                                     title="Edit Event">
+                                 <i class="bi bi-pencil"></i> Edit
                             </button>
 
                             <form action="{{ route('admin.event.destroy', $evt->id) }}" method="POST" class="d-inline form-delete-event">
@@ -287,7 +319,15 @@
                         <label class="form-label fw-semibold">Kelas Pertandingan</label>
                         <input type="text" name="kelasPertandingan" class="form-control" placeholder="Contoh: CQB Open, Woodland 5v5, Sniper Rifle">
                     </div>
-                    <div class="col-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status Moderasi</label>
+                        <select name="status" class="form-select">
+                            <option value="diterima">Diterima (Aktif)</option>
+                            <option value="panding">Pending</option>
+                            <option value="tolak">Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Sumber / Link Pendaftaran</label>
                         <input type="url" name="sumber" class="form-control" placeholder="https://forms.gle/... atau https://instagram.com/...">
                     </div>
@@ -361,7 +401,15 @@
                         <label class="form-label fw-semibold">Kelas Pertandingan</label>
                         <input type="text" id="editEventKelas" name="kelasPertandingan" class="form-control">
                     </div>
-                    <div class="col-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status Moderasi</label>
+                        <select id="editEventStatus" name="status" class="form-select">
+                            <option value="diterima">Diterima (Aktif)</option>
+                            <option value="panding">Pending</option>
+                            <option value="tolak">Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Sumber / Link Pendaftaran</label>
                         <input type="url" id="editEventSumber" name="sumber" class="form-control">
                     </div>
@@ -433,6 +481,10 @@
                                     <td id="detailEventKelas">-</td>
                                 </tr>
                                 <tr>
+                                    <td class="text-muted">Status Moderasi</td>
+                                    <td id="detailEventStatus">-</td>
+                                </tr>
+                                <tr>
                                     <td class="text-muted">Link Registrasi</td>
                                     <td>
                                         <a id="detailEventSumber" href="#" target="_blank" rel="noopener noreferrer" class="text-break">-</a>
@@ -471,6 +523,7 @@
                 document.getElementById('editEventLokasi').value = this.dataset.lokasi || '';
                 document.getElementById('editEventProvinsi').value = this.dataset.idProvinsi || '';
                 document.getElementById('editEventKota').value = this.dataset.kota || '';
+                document.getElementById('editEventStatus').value = this.dataset.status || 'panding';
                 document.getElementById('editEventSumber').value = this.dataset.sumber || '';
                 document.getElementById('editEventHtm').value = this.dataset.htm || '';
                 document.getElementById('editEventKelas').value = this.dataset.kelas || '';
@@ -488,6 +541,15 @@
                 document.getElementById('detailEventLokasi').textContent = this.dataset.lokasi || '-';
                 document.getElementById('detailEventHtm').textContent = this.dataset.htm || '-';
                 document.getElementById('detailEventKelas').textContent = this.dataset.kelas || '-';
+
+                const status = this.dataset.status || 'panding';
+                let statusBadge = '<span class="pill warning">Pending</span>';
+                if (status === 'diterima' || status === 'terimakasih') {
+                    statusBadge = '<span class="pill success">Diterima</span>';
+                } else if (status === 'tolak') {
+                    statusBadge = '<span class="pill danger">Ditolak</span>';
+                }
+                document.getElementById('detailEventStatus').innerHTML = statusBadge;
 
                 const sumber = this.dataset.sumber;
                 const sumberLink = document.getElementById('detailEventSumber');

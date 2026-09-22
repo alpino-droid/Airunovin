@@ -234,8 +234,15 @@ a:hover {
 }
 
 .btn-outline-primary:hover,
-.btn-outline-secondary:hover {
+.btn-outline-secondary:hover,
+.btn-check:checked + .btn-outline-primary,
+.btn-check:checked + .btn-outline-secondary,
+.btn-check:active + .btn-outline-primary,
+.btn-check:active + .btn-outline-secondary,
+.btn-outline-primary.active,
+.btn-outline-secondary.active {
     background-color: var(--deep-red) !important;
+    border-color: var(--deep-red) !important;
     color: #fff !important;
 }
 
@@ -612,4 +619,56 @@ a:hover {
     background: rgba(139, 30, 30, 0.1);
     color: var(--deep-red);
     font-size: 0.9rem;
+}
+
+/* ==========================================================================
+   PAGINATION GLOBAL FIX & STYLING
+   ========================================================================== */
+nav svg,
+.pagination svg,
+.page-link svg {
+    width: 1rem !important;
+    height: 1rem !important;
+    max-width: 1rem !important;
+    max-height: 1rem !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+
+.pagination {
+    margin-bottom: 0;
+    gap: 0.25rem;
+}
+
+.pagination .page-item .page-link {
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #4b5563;
+    border: 1px solid #e2e8f0;
+    padding: 0.375rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    line-height: 1;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--deep-red, #8b1e1e);
+    border-color: var(--deep-red, #8b1e1e);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.pagination .page-item .page-link:hover:not(.active) {
+    background-color: #f1f5f9;
+    color: var(--deep-red, #8b1e1e);
+    border-color: #cbd5e1;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #94a3b8;
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
 }

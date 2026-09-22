@@ -15,7 +15,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon blue">👤</div>
+                <div class="stat-icon blue"><i class="bi bi-people-fill fs-4"></i></div>
                 <span class="pill success">+11%</span>
             </div>
             <div class="stat-label">Pendaftar</div>
@@ -25,7 +25,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon green">✓</div>
+                <div class="stat-icon green"><i class="bi bi-check-circle fs-4"></i></div>
                 <span class="pill success">81%</span>
             </div>
             <div class="stat-label">Disetujui</div>
@@ -35,7 +35,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon orange">⏳</div>
+                <div class="stat-icon orange"><i class="bi bi-hourglass-split fs-4"></i></div>
                 <span class="pill warning">18</span>
             </div>
             <div class="stat-label">Pending</div>
@@ -45,7 +45,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon purple">⚠</div>
+                <div class="stat-icon purple"><i class="bi bi-x-circle fs-4"></i></div>
                 <span class="pill danger">7</span>
             </div>
             <div class="stat-label">Ditolak</div>

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('city');
             $table->string('gform_link');
             $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
+            $table->enum('status', ['panding', 'tolak', 'diterima'])->default('panding');
             $table->timestamps();
         });
     }

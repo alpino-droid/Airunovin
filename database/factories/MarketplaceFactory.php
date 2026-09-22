@@ -20,7 +20,7 @@ class MarketplaceFactory extends Factory
             'nama' => fake()->company() . ' Marketplace',
             'deskripsi' => fake()->sentence(12),
             'logo' => null,
-            'status' => 'active',
+            'status' => 'diterima',
         ];
     }
 }

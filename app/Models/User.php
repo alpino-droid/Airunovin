@@ -21,6 +21,7 @@ class User extends Authenticatable
         'nama',
         'profile_picture',
         'phone',
+        'id_provinsi',
         'province',
         'city',
         // 'role' → TIDAK ADA, karena tidak ada di database
@@ -64,9 +65,22 @@ class User extends Authenticatable
         return asset('img/blankPhotoProfile.png');
     }
 
+    public function getProvinceAttribute($value)
+    {
+        if ($value) {
+            return $value;
+        }
+        return $this->provinsi?->provinsi;
+    }
+
     // ==========================================
     // RELASI
     // ==========================================
+
+    public function provinsi(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Provinsi::class, 'id_provinsi');
+    }
 
     /**
      * Relasi ke Club (sebagai pemilik)
@@ -100,9 +114,18 @@ class User extends Authenticatable
         return $this->hasMany(Product::class, 'id_user');
     }
 
-    // ==========================================
-    // PERMISSION CHECK (Tanpa Role)
-    // ==========================================
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(ProductPurchase::class, 'id_user')->latest();
+    }
+
+    /**
+     * Cek apakah user adalah admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->email === 'admin@example.com' || $this->id === 1;
+    }
 
     /**
      * Cek apakah user adalah pemilik club

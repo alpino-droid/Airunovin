@@ -13,7 +13,7 @@ class ClubController extends Controller
     public function home(Request $request)
     {
         $provinsi = Provinsi::orderBy('provinsi')->get();
-        $query = Club::query();
+        $query = Club::query()->where('status', 'diterima');
 
         if ($request->filled('province')) {
             $query->where('id_provinsi', $request->integer('province'));
@@ -22,15 +22,40 @@ class ClubController extends Controller
             $query->where('city', $request->string('city'));
         }
 
+        if ($request->filled('search') || $request->filled('q')) {
+            $search = trim((string) ($request->input('search') ?? $request->input('q')));
+            $terms = array_filter(explode(' ', $search), fn($t) => strlen($t) >= 2);
+
+            $query->where(function ($q) use ($search, $terms) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('deskripsi', 'like', "%{$search}%")
+                  ->orWhere('induk_organisasi', 'like', "%{$search}%")
+                  ->orWhere('city', 'like', "%{$search}%");
+
+                foreach ($terms as $term) {
+                    $q->orWhere('nama', 'like', "%{$term}%")
+                      ->orWhere('deskripsi', 'like', "%{$term}%")
+                      ->orWhere('city', 'like', "%{$term}%");
+                }
+            });
+        }
+
         $clubs = $query->latest()->get();
-        $cities = Club::query()->whereNotNull('city')->distinct()->orderBy('city')->pluck('city');
+        $cities = Club::query()->where('status', 'diterima')->whereNotNull('city')->distinct()->orderBy('city')->pluck('city');
 
         return view('pages.club', compact('clubs', 'provinsi', 'cities'));
     }
 
     public function isiClub(club $club)
     {
-        $clubs = Club::whereKeyNot($club->getKey())
+        if ($club->status !== 'diterima') {
+            if (!Auth::check() || (Auth::id() !== $club->id_user && !Auth::user()->isAdmin())) {
+                abort(404, 'Club belum disetujui atau tidak tersedia.');
+            }
+        }
+
+        $clubs = Club::where('status', 'diterima')
+            ->whereKeyNot($club->getKey())
             ->orderBy('created_at', 'desc')
             ->take(6)
             ->get();
@@ -49,6 +74,11 @@ class ClubController extends Controller
     public function detail($id)
     {
         $club = Club::with('user')->findOrFail($id);
+        if ($club->status !== 'diterima') {
+            if (!Auth::check() || (Auth::id() !== $club->id_user && !Auth::user()->isAdmin())) {
+                abort(404, 'Club belum disetujui atau tidak tersedia.');
+            }
+        }
         $provinsi = Provinsi::find($club->id_provinsi);
 
         return view('pages.isiClub', compact('club', 'provinsi'));

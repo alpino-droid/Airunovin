@@ -19,7 +19,7 @@ class NotificationController extends Controller
             default             => 'all',
         };
 
-        $query = Notification::query()->orderBy('created_at', 'desc');
+        $query = Notification::where('id_user', auth()->id())->orderBy('created_at', 'desc');
 
         if ($mode !== 'all') {
             $query->forCategory($mode);
@@ -28,11 +28,11 @@ class NotificationController extends Controller
         $notifications = $query->paginate(10)->withQueryString();
 
         // Statistik ringkasan
-        $unreadTotal = Notification::unread()->count();
+        $unreadTotal = Notification::where('id', auth()->id())->unread()->count();
         $unreadActive = (clone $query)->unread()->count();
-        $totalNotifications = Notification::count();
-        $sellerCount = Notification::forCategory('seller')->count();
-        $buyerCount = Notification::forCategory('buyer')->count();
+        $totalNotifications = Notification::where('id', auth()->id())->count();
+        $sellerCount = Notification::where('id', auth()->id())->forCategory('seller')->count();
+        $buyerCount = Notification::where('id', auth()->id())->forCategory('buyer')->count();
 
         return view('pages.notifications', compact(
             'notifications',
@@ -63,7 +63,7 @@ class NotificationController extends Controller
      */
     public function markAsRead(Request $request, $id)
     {
-        $notification = Notification::findOrFail($id);
+        $notification = Notification::where('id', auth()->id())->findOrFail($id);
         $notification->markAsRead();
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -82,7 +82,7 @@ class NotificationController extends Controller
      */
     public function markAllAsRead(Request $request)
     {
-        Notification::unread()->update(['read_at' => now()]);
+        Notification::where('id_user', auth()->id())->unread()->update(['read_at' => now()]);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -100,7 +100,7 @@ class NotificationController extends Controller
      */
     public function destroy($id)
     {
-        $notification = Notification::findOrFail($id);
+        $notification = Notification::where('id_user', auth()->id())->findOrFail($id);
         $notification->delete();
 
         return redirect()->back()->with('success', 'Notifikasi berhasil dihapus.');

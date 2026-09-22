@@ -48,7 +48,7 @@ class ProductSeeder extends Seeder
                 'id_user' => $user->id,
                 'nama' => 'Airunovin Tactical Hub',
                 'deskripsi' => 'Pusat jual beli unit airsoft, sparepart upgrade, dan perlengkapan taktis.',
-                'status' => 'active',
+                'status' => 'diterima',
             ]);
 
             $marketplaces = collect([$marketplace]);
@@ -66,13 +66,17 @@ class ProductSeeder extends Seeder
                 'nama' => $item['nama'],
                 'harga' => $item['harga'],
                 'merk' => $item['merk'],
-                'jenis' => $item['jenis'],
+                'unit' => $item['unit'] ?? null,
+                'sparepart' => $item['sparepart'] ?? null,
+                'aksesoris' => $item['aksesoris'] ?? null,
+                'jenis' => $item['jenis'] ?? null,
                 'kondisi' => $item['kondisi'],
                 'stok' => $item['stok'],
                 'lokasi' => $item['lokasi'],
                 'deskripsi' => $item['deskripsi'],
                 'gambar' => $item['gambar'],
                 'payment_methods' => $item['payment_methods'],
+                'status' => 'diterima',
             ]);
         }
     }

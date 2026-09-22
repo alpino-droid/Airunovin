@@ -129,6 +129,7 @@ class clubFactory extends Factory
             'deskripsi' => $club['deskripsi'],
             'gform_link' => $club['gform_link'],
             'logo' => $club['logo'],
+            'status' => 'diterima',
         ];
     }
 }

@@ -13,26 +13,30 @@
         
             <div class="collapse navbar-collapse" id="mainNavbarMenu">
             <ul class="nav align-items-center ms-auto">
-            {{-- Input Pencarian dengan Ikon SVG --}}
+            {{-- Input Pencarian dengan Ikon SVG & Mesin Pencari Pintar --}}
             <li class="nav-item position-relative me-2 app-navbar-search">
-                <input 
-                    class="form-control form-control-sm" 
-                    type="text" 
-                    placeholder="{{ __('Search') }}" 
-                    aria-label="{{ __('Search') }}"
-                    style="padding-left: 35px; width: 200px;"
-                >
-                {{-- SVG dari public/icon --}}
-                <img src="{{ asset('icon/material-symbols-light--search.svg') }}" 
-                     alt="Search" 
-                     style="position: absolute; 
-                            left: 10px; 
-                            top: 50%; 
-                            transform: translateY(-50%); 
-                            width: 18px; 
-                            height: 18px; 
-                            pointer-events: none;
-                            opacity: 0.6;">
+                <form action="{{ route('global.search') }}" method="GET" class="m-0 p-0 position-relative" id="globalSearchForm">
+                    <input 
+                        class="form-control form-control-sm" 
+                        type="search" 
+                        name="q"
+                        id="globalSearchInput"
+                        placeholder="{{ __('Cari event, club, produk...') }}" 
+                        aria-label="{{ __('Search') }}"
+                        value="{{ request('search') ?? request('q') }}"
+                        style="padding-left: 35px; width: 230px;"
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="btn p-0 border-0 bg-transparent" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; line-height: 1; z-index: 5;" aria-label="Submit Search">
+                        <img src="{{ asset('icon/material-symbols-light--search.svg') }}" 
+                             alt="Search" 
+                             style="width: 18px; height: 18px; opacity: 0.6;">
+                    </button>
+                    {{-- Live Autocomplete Dropdown Preview --}}
+                    <div id="globalSearchDropdown" class="dropdown-menu shadow-lg p-2 d-none position-absolute" style="width: 320px; right: 0; left: auto; top: calc(100% + 6px); max-height: 400px; overflow-y: auto; z-index: 1060; border-radius: 12px;">
+                        <div id="globalSearchDropdownContent"></div>
+                    </div>
+                </form>
             </li>
             
             {{-- NAVIGASI MENU --}}
@@ -53,8 +57,8 @@
             </li>
 
             @php
-                $headerUnreadCount = \App\Models\Notification::unread()->count();
-                $headerNotifications = \App\Models\Notification::orderBy('created_at', 'desc')->take(5)->get();
+                $headerUnreadCount = \App\Models\Notification::where('id_user', auth()->id())->unread()->count();
+                $headerNotifications = \App\Models\Notification::where('id_user', auth()->id())->orderBy('created_at', 'desc')->take(5)->get();
             @endphp
             <li class="nav-item dropdown me-2">
                 <button class="btn btn-link position-relative text-dark dropdown-toggle" 
@@ -247,3 +251,113 @@
         </ul>
     </div>
 </nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchDropdown = document.getElementById('globalSearchDropdown');
+    const searchContent = document.getElementById('globalSearchDropdownContent');
+    const searchForm = document.getElementById('globalSearchForm');
+
+    if (!searchInput || !searchDropdown || !searchContent) return;
+
+    let debounceTimer = null;
+
+    searchInput.addEventListener('input', function () {
+        const query = this.value.trim();
+        clearTimeout(debounceTimer);
+
+        if (query.length < 2) {
+            searchDropdown.classList.add('d-none');
+            searchContent.innerHTML = '';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`{{ route('search.suggest') }}?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    let html = '';
+                    const hasEvents = data.events && data.events.length > 0;
+                    const hasClubs = data.clubs && data.clubs.length > 0;
+                    const hasProducts = data.products && data.products.length > 0;
+
+                    if (!hasEvents && !hasClubs && !hasProducts) {
+                        html = `
+                            <div class="p-2 text-center text-muted small">
+                                <i class="bi bi-search me-1"></i> Tekan <strong>Enter</strong> untuk mencari "<em>${query}</em>"
+                            </div>
+                        `;
+                    } else {
+                        if (hasEvents) {
+                            html += `<div class="dropdown-header text-uppercase text-primary fw-bold px-2 py-1 small"><i class="bi bi-calendar-event me-1"></i> Event</div>`;
+                            data.events.forEach(e => {
+                                html += `
+                                    <a href="${e.url}" class="dropdown-item d-flex align-items-center py-2 px-2 rounded">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="fw-semibold text-dark text-truncate small">${e.title}</div>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">${e.sub}</div>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                        }
+
+                        if (hasClubs) {
+                            html += `<div class="dropdown-header text-uppercase text-primary fw-bold px-2 py-1 small mt-2"><i class="bi bi-shield-shaded me-1"></i> Club</div>`;
+                            data.clubs.forEach(c => {
+                                html += `
+                                    <a href="${c.url}" class="dropdown-item d-flex align-items-center py-2 px-2 rounded">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="fw-semibold text-dark text-truncate small">${c.title}</div>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">${c.sub}</div>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                        }
+
+                        if (hasProducts) {
+                            html += `<div class="dropdown-header text-uppercase text-primary fw-bold px-2 py-1 small mt-2"><i class="bi bi-shop me-1"></i> Produk / Market</div>`;
+                            data.products.forEach(p => {
+                                html += `
+                                    <a href="${p.url}" class="dropdown-item d-flex align-items-center py-2 px-2 rounded">
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <div class="fw-semibold text-dark text-truncate small">${p.title}</div>
+                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">${p.sub}</div>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                        }
+
+                        html += `
+                            <hr class="dropdown-divider my-1">
+                            <button type="submit" class="dropdown-item text-center text-primary fw-semibold py-2 small rounded">
+                                <i class="bi bi-arrow-return-right me-1"></i> Tekan Enter untuk cari semua
+                            </button>
+                        `;
+                    }
+
+                    searchContent.innerHTML = html;
+                    searchDropdown.classList.remove('d-none');
+                })
+                .catch(() => {
+                    searchDropdown.classList.add('d-none');
+                });
+        }, 200);
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+            searchDropdown.classList.add('d-none');
+        }
+    });
+
+    searchInput.addEventListener('focus', function () {
+        if (searchContent.innerHTML.trim() !== '' && this.value.trim().length >= 2) {
+            searchDropdown.classList.remove('d-none');
+        }
+    });
+});
+</script>

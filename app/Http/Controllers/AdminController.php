@@ -8,6 +8,7 @@ use App\Models\event;
 use App\Models\Marketplace;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -41,6 +42,7 @@ class AdminController extends Controller
             'htm' => 'nullable|numeric|min:0',
             'kelasPertandingan' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:panding,tolak,diterima',
             'poster' => ['nullable', 'array', 'max:' . event::MAX_POSTERS],
             'poster.*' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ]);
@@ -66,6 +68,7 @@ class AdminController extends Controller
             'htm' => $request->htm,
             'kelasPertandingan' => $request->kelasPertandingan,
             'deskripsi' => $request->deskripsi,
+            'status' => $request->status ?? 'diterima',
             'poster' => $posterPaths ?: null,
         ]);
 
@@ -87,6 +90,7 @@ class AdminController extends Controller
             'htm' => 'nullable|numeric|min:0',
             'kelasPertandingan' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:panding,tolak,diterima',
             'poster' => ['nullable', 'array', 'max:' . event::MAX_POSTERS],
             'poster.*' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:2048'],
         ]);
@@ -136,6 +140,7 @@ class AdminController extends Controller
             'city' => 'required|string|max:255',
             'gform_link' => 'nullable|string|max:500',
             'deskripsi' => 'required|string',
+            'status' => 'nullable|in:panding,tolak,diterima',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
@@ -146,6 +151,7 @@ class AdminController extends Controller
         }
 
         $validated['id_user'] = Auth::id() ?? User::first()?->id ?? 1;
+        $validated['status'] = $request->status ?? 'diterima';
 
         Club::create($validated);
 
@@ -163,6 +169,7 @@ class AdminController extends Controller
             'city' => 'required|string|max:255',
             'gform_link' => 'nullable|string|max:500',
             'deskripsi' => 'required|string',
+            'status' => 'nullable|in:panding,tolak,diterima',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
@@ -192,7 +199,71 @@ class AdminController extends Controller
     }
 
     // ==========================================
-    // CRUD MARKETPLACE / PRODUK
+    // CRUD MARKETPLACE (TOKO)
+    // ==========================================
+    public function marketplaceStore(Request $request)
+    {
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string|max:1000',
+            'id_user' => 'nullable|integer|exists:users,id',
+            'status' => 'nullable|in:panding,tolak,diterima',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        if ($request->hasFile('logo')) {
+            $validated['logo'] = $request->file('logo')->store('MarketplaceLogo', 'public');
+        } else {
+            $validated['logo'] = 'default_marketplace.png';
+        }
+
+        $validated['id_user'] = $validated['id_user'] ?? (Auth::id() ?? User::first()?->id ?? 1);
+        $validated['status'] = $request->status ?? 'diterima';
+
+        Marketplace::create($validated);
+
+        return redirect()->back()->with('success', 'Toko Marketplace berhasil ditambahkan!');
+    }
+
+    public function marketplaceUpdate(Request $request, $id)
+    {
+        $marketplace = Marketplace::findOrFail($id);
+
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string|max:1000',
+            'id_user' => 'nullable|integer|exists:users,id',
+            'status' => 'nullable|in:panding,tolak,diterima',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        if ($request->hasFile('logo')) {
+            if ($marketplace->logo && $marketplace->logo !== 'default_marketplace.png' && Storage::disk('public')->exists($marketplace->logo)) {
+                Storage::disk('public')->delete($marketplace->logo);
+            }
+            $validated['logo'] = $request->file('logo')->store('MarketplaceLogo', 'public');
+        }
+
+        $marketplace->update($validated);
+
+        return redirect()->back()->with('success', 'Toko Marketplace berhasil diperbarui!');
+    }
+
+    public function marketplaceDestroy($id)
+    {
+        $marketplace = Marketplace::findOrFail($id);
+
+        if ($marketplace->logo && $marketplace->logo !== 'default_marketplace.png' && Storage::disk('public')->exists($marketplace->logo)) {
+            Storage::disk('public')->delete($marketplace->logo);
+        }
+
+        $marketplace->delete();
+
+        return redirect()->back()->with('success', 'Toko Marketplace berhasil dihapus!');
+    }
+
+    // ==========================================
+    // CRUD PRODUK
     // ==========================================
     public function productStore(Request $request)
     {
@@ -200,21 +271,30 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
             'harga' => 'required|numeric|min:0',
             'merk' => 'required|string|max:255',
-            'jenis' => 'required|string|max:100',
+            'unit' => 'nullable|in:rifle,shootgun,macinegun,sniper,handgun',
+            'sparepart' => 'nullable|string|max:255',
+            'aksesoris' => 'nullable|string|max:255',
+            'jenis' => 'nullable|string|max:100',
             'kondisi' => 'required|string|max:100',
             'stok' => 'required|integer|min:0',
             'lokasi' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:panding,tolak,diterima',
             'id_marketplace' => 'nullable|integer',
             'payment_methods' => 'nullable|array',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
+
+        if (empty($validated['jenis'])) {
+            $validated['jenis'] = $validated['unit'] ?: ($validated['sparepart'] ?: ($validated['aksesoris'] ?: $validated['merk']));
+        }
 
         if ($request->hasFile('gambar')) {
             $validated['gambar'] = $request->file('gambar')->store('Product', 'public');
         }
 
         $validated['id_user'] = Auth::id() ?? User::first()?->id ?? 1;
+        $validated['status'] = $request->status ?? 'diterima';
 
         if (empty($validated['id_marketplace'])) {
             $firstMarket = Marketplace::first();
@@ -238,15 +318,23 @@ class AdminController extends Controller
             'nama' => 'required|string|max:255',
             'harga' => 'required|numeric|min:0',
             'merk' => 'required|string|max:255',
-            'jenis' => 'required|string|max:100',
+            'unit' => 'nullable|in:rifle,shootgun,macinegun,sniper,handgun',
+            'sparepart' => 'nullable|string|max:255',
+            'aksesoris' => 'nullable|string|max:255',
+            'jenis' => 'nullable|string|max:100',
             'kondisi' => 'required|string|max:100',
             'stok' => 'required|integer|min:0',
             'lokasi' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:panding,tolak,diterima',
             'id_marketplace' => 'nullable|integer',
             'payment_methods' => 'nullable|array',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
+
+        if (empty($validated['jenis'])) {
+            $validated['jenis'] = $validated['unit'] ?: ($validated['sparepart'] ?: ($validated['aksesoris'] ?: $validated['merk']));
+        }
 
         if ($request->hasFile('gambar')) {
             if ($product->gambar && Storage::disk('public')->exists($product->gambar)) {
@@ -309,11 +397,19 @@ class AdminController extends Controller
 
     public function marketplace()
     {
+        $marketplaces = Marketplace::with('user')->withCount('products')->orderBy('created_at', 'desc')->get();
+        $users = User::orderBy('nama')->get();
+
+        return view('admin.marketplace', compact('marketplaces', 'users'));
+    }
+
+    public function product()
+    {
         $products = Product::with(['user', 'marketplace'])->orderBy('created_at', 'desc')->get();
         $marketplaces = Marketplace::orderBy('nama')->get();
         $users = User::orderBy('nama')->get();
 
-        return view('admin.marketplace', compact('products', 'marketplaces', 'users'));
+        return view('admin.product', compact('products', 'marketplaces', 'users'));
     }
 
     public function registrasi()
@@ -325,5 +421,124 @@ class AdminController extends Controller
     public function settings()
     {
         return view('admin.settings');
+    }
+
+    // ==========================================
+    // MODERASI STATUS (TERIMA / TOLAK)
+    // ==========================================
+    public function eventStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:panding,tolak,diterima',
+        ]);
+
+        $event = event::findOrFail($id);
+        $event->status = $request->status;
+        $event->save();
+
+        try {
+            if ($event->id_user) {
+                $isAccepted = $event->status === 'diterima';
+                Notification::create([
+                    'id_user' => $event->id_user,
+                    'title' => $isAccepted ? 'Event Disetujui' : 'Event Ditolak',
+                    'message' => "Event '{$event->nama}' Anda telah " . ($isAccepted ? 'disetujui oleh admin dan kini tayang ke publik.' : 'ditolak oleh admin.'),
+                    'type' => $isAccepted ? 'success' : 'danger',
+                    'category' => 'all',
+                    'link' => route('isiEvent', $event->id),
+                    'icon' => $isAccepted ? 'bi-calendar-check' : 'bi-calendar-x',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        $label = $request->status === 'diterima' ? 'diterima (disetujui)' : ($request->status === 'tolak' ? 'ditolak' : 'diubah menjadi pending');
+        return redirect()->back()->with('success', "Event '{$event->nama}' berhasil {$label}!");
+    }
+
+    public function clubStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:panding,tolak,diterima',
+        ]);
+
+        $club = Club::findOrFail($id);
+        $club->status = $request->status;
+        $club->save();
+
+        try {
+            if ($club->id_user) {
+                $isAccepted = $club->status === 'diterima';
+                Notification::create([
+                    'id_user' => $club->id_user,
+                    'title' => $isAccepted ? 'Club Disetujui' : 'Club Ditolak',
+                    'message' => "Club '{$club->nama}' Anda telah " . ($isAccepted ? 'disetujui oleh admin dan kini tayang ke publik.' : 'ditolak oleh admin.'),
+                    'type' => $isAccepted ? 'success' : 'danger',
+                    'category' => 'all',
+                    'link' => route('isiClub', $club->id),
+                    'icon' => $isAccepted ? 'bi-shield-check' : 'bi-shield-x',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        $label = $request->status === 'diterima' ? 'diterima (disetujui)' : ($request->status === 'tolak' ? 'ditolak' : 'diubah menjadi pending');
+        return redirect()->back()->with('success', "Club '{$club->nama}' berhasil {$label}!");
+    }
+
+    public function marketplaceStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:panding,tolak,diterima',
+        ]);
+
+        $marketplace = Marketplace::findOrFail($id);
+        $marketplace->status = $request->status;
+        $marketplace->save();
+
+        try {
+            if ($marketplace->id_user) {
+                $isAccepted = $marketplace->status === 'diterima';
+                Notification::create([
+                    'id_user' => $marketplace->id_user,
+                    'title' => $isAccepted ? 'Toko Marketplace Disetujui' : 'Toko Marketplace Ditolak',
+                    'message' => "Toko '{$marketplace->nama}' Anda telah " . ($isAccepted ? 'disetujui oleh admin dan kini aktif.' : 'ditolak oleh admin.'),
+                    'type' => $isAccepted ? 'success' : 'danger',
+                    'category' => 'seller',
+                    'link' => route('market', $marketplace->id),
+                    'icon' => $isAccepted ? 'bi-shop' : 'bi-x-circle',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        $label = $request->status === 'diterima' ? 'diterima (disetujui)' : ($request->status === 'tolak' ? 'ditolak' : 'diubah menjadi pending');
+        return redirect()->back()->with('success', "Toko Marketplace '{$marketplace->nama}' berhasil {$label}!");
+    }
+
+    public function productStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:panding,tolak,diterima',
+        ]);
+
+        $product = Product::findOrFail($id);
+        $product->status = $request->status;
+        $product->save();
+
+        try {
+            if ($product->id_user) {
+                $isAccepted = $product->status === 'diterima';
+                Notification::create([
+                    'id_user' => $product->id_user,
+                    'title' => $isAccepted ? 'Produk Disetujui' : 'Produk Ditolak',
+                    'message' => "Produk '{$product->nama}' Anda telah " . ($isAccepted ? 'disetujui oleh admin dan kini tayang di marketplace.' : 'ditolak oleh admin.'),
+                    'type' => $isAccepted ? 'success' : 'danger',
+                    'category' => 'seller',
+                    'link' => route('isiMarketplace', $product->id),
+                    'icon' => $isAccepted ? 'bi-box-seam' : 'bi-x-circle',
+                ]);
+            }
+        } catch (\Throwable $e) {}
+
+        $label = $request->status === 'diterima' ? 'diterima (disetujui)' : ($request->status === 'tolak' ? 'ditolak' : 'diubah menjadi pending');
+        return redirect()->back()->with('success', "Produk '{$product->nama}' berhasil {$label}!");
     }
 }

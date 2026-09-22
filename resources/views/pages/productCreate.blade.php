@@ -2,6 +2,28 @@
 
 @section('title', isset($product) ? 'Edit Produk' : 'Tambah Produk')
 
+@push('styles')
+<style>
+    .category-radio:checked + label.btn-outline-primary,
+    .btn-check:checked + .btn-outline-primary {
+        background-color: var(--deep-red, #8B1E1E) !important;
+        border-color: var(--deep-red, #8B1E1E) !important;
+        color: #ffffff !important;
+    }
+
+    .btn-group .btn-outline-primary {
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
+    }
+
+    .btn-group .btn-outline-primary:hover {
+        background-color: var(--deep-red, #8B1E1E) !important;
+        border-color: var(--deep-red, #8B1E1E) !important;
+        color: #ffffff !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container text-start pt-3 pb-5">
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
@@ -67,22 +89,13 @@
                                 @error('stok')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="merk">Merek</label>
-                                <input type="text" class="form-control @error('merk') is-invalid @enderror" id="merk" name="merk" value="{{ old('merk', $product->merk ?? '') }}" placeholder="Contoh: RCW" required>
+                                <label class="form-label fw-semibold" for="merk">Merek <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('merk') is-invalid @enderror" id="merk" name="merk" value="{{ old('merk', $product->merk ?? '') }}" placeholder="Contoh: Tokyo Marui, Specna Arms, RCW" required>
+                                <div class="form-text">Merek produk (wajib diisi).</div>
                                 @error('merk')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="jenis">Jenis produk</label>
-                                <select class="form-select @error('jenis') is-invalid @enderror" id="jenis" name="jenis" required>
-                                    <option value="">Pilih jenis</option>
-                                    @foreach (['Unit', 'Sparepart', 'Accessories', 'Perlengkapan'] as $jenis)
-                                        <option value="{{ $jenis }}" @selected(old('jenis', $product->jenis ?? '') === $jenis)>{{ $jenis }}</option>
-                                    @endforeach
-                                </select>
-                                @error('jenis')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold" for="kondisi">Kondisi</label>
+                                <label class="form-label fw-semibold" for="kondisi">Kondisi <span class="text-danger">*</span></label>
                                 <select class="form-select @error('kondisi') is-invalid @enderror" id="kondisi" name="kondisi" required>
                                     <option value="">Pilih kondisi</option>
                                     @foreach (['Baru', 'Sangat baik', 'Baik', 'Bekas'] as $kondisi)
@@ -90,6 +103,76 @@
                                     @endforeach
                                 </select>
                                 @error('kondisi')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            @php
+                                $selectedCategory = old('kategori_pilihan');
+                                if (!$selectedCategory) {
+                                    if (!empty(old('unit', $product->unit ?? ''))) {
+                                        $selectedCategory = 'unit';
+                                    } elseif (!empty(old('sparepart', $product->sparepart ?? ''))) {
+                                        $selectedCategory = 'sparepart';
+                                    } elseif (!empty(old('aksesoris', $product->aksesoris ?? ''))) {
+                                        $selectedCategory = 'aksesoris';
+                                    }
+                                }
+                            @endphp
+
+                            {{-- Pilihan salah satu dari Unit, Sparepart, atau Aksesoris --}}
+                            <div class="col-12">
+                                <label class="form-label fw-semibold d-block">Pilih Kategori Spesifikasi (Pilih salah satu)</label>
+                                <div class="btn-group w-100" role="group" aria-label="Pilih Kategori Produk">
+                                    <input type="radio" class="btn-check category-radio" name="kategori_pilihan" id="kat_unit" value="unit" autocomplete="off" @checked($selectedCategory === 'unit')>
+                                    <label class="btn btn-outline-primary py-2" for="kat_unit">
+                                        <i class="bi bi-crosshair me-1"></i> Unit
+                                    </label>
+
+                                    <input type="radio" class="btn-check category-radio" name="kategori_pilihan" id="kat_sparepart" value="sparepart" autocomplete="off" @checked($selectedCategory === 'sparepart')>
+                                    <label class="btn btn-outline-primary py-2" for="kat_sparepart">
+                                        <i class="bi bi-gear me-1"></i> Sparepart
+                                    </label>
+
+                                    <input type="radio" class="btn-check category-radio" name="kategori_pilihan" id="kat_aksesoris" value="aksesoris" autocomplete="off" @checked($selectedCategory === 'aksesoris')>
+                                    <label class="btn btn-outline-primary py-2" for="kat_aksesoris">
+                                        <i class="bi bi-shield-check me-1"></i> Aksesoris
+                                    </label>
+                                </div>
+                                <div class="form-text">Pilih salah satu kategori di atas sebelum mengisi rincian teks di bawah (opsional).</div>
+                            </div>
+
+                            {{-- Input Teks Berdasarkan Kategori yang Dipilih --}}
+                            <div class="col-12" id="categoryInputWrapper">
+                                <div id="noCategoryAlert" class="alert alert-light border text-muted small mb-0 py-2 {{ $selectedCategory ? 'd-none' : '' }}">
+                                    <i class="bi bi-info-circle me-1"></i> Silakan pilih salah satu kategori di atas untuk memunculkan form isi teks rincian produk.
+                                </div>
+
+                                <div id="container_unit" class="category-field {{ $selectedCategory === 'unit' ? '' : 'd-none' }}">
+                                    <label class="form-label fw-semibold" for="unit">Rincian Tipe Unit</label>
+                                    <select class="form-select @error('unit') is-invalid @enderror" id="unit" name="unit" {{ $selectedCategory === 'unit' ? '' : 'disabled' }}>
+                                        <option value="">Pilih Tipe Unit</option>
+                                        <option value="rifle" @selected(old('unit', $product->unit ?? '') === 'rifle')>Rifle</option>
+                                        <option value="shootgun" @selected(old('unit', $product->unit ?? '') === 'shootgun')>Shootgun</option>
+                                        <option value="macinegun" @selected(old('unit', $product->unit ?? '') === 'macinegun')>Macinegun</option>
+                                        <option value="sniper" @selected(old('unit', $product->unit ?? '') === 'sniper')>Sniper</option>
+                                        <option value="handgun" @selected(old('unit', $product->unit ?? '') === 'handgun')>Handgun</option>
+                                    </select>
+                                    <div class="form-text">Pilih tipe unit airsoft (Rifle, Shootgun, Macinegun, Sniper, Handgun).</div>
+                                    @error('unit')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                <div id="container_sparepart" class="category-field {{ $selectedCategory === 'sparepart' ? '' : 'd-none' }}">
+                                    <label class="form-label fw-semibold" for="sparepart">Rincian Sparepart</label>
+                                    <input type="text" class="form-control @error('sparepart') is-invalid @enderror" id="sparepart" name="sparepart" value="{{ old('sparepart', $product->sparepart ?? '') }}" placeholder="Contoh: Inbar 6.02mm, Hop Up Chamber, Spring M120" {{ $selectedCategory === 'sparepart' ? '' : 'disabled' }}>
+                                    <div class="form-text">Tuliskan komponen atau suku cadang upgrade.</div>
+                                    @error('sparepart')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+
+                                <div id="container_aksesoris" class="category-field {{ $selectedCategory === 'aksesoris' ? '' : 'd-none' }}">
+                                    <label class="form-label fw-semibold" for="aksesoris">Rincian Aksesoris</label>
+                                    <input type="text" class="form-control @error('aksesoris') is-invalid @enderror" id="aksesoris" name="aksesoris" value="{{ old('aksesoris', $product->aksesoris ?? '') }}" placeholder="Contoh: Scope ACOG, Red Dot, Silencer Tracer, Grip" {{ $selectedCategory === 'aksesoris' ? '' : 'disabled' }}>
+                                    <div class="form-text">Tuliskan jenis aksesoris atau perlengkapan taktis pendukung.</div>
+                                    @error('aksesoris')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold" for="lokasi">Lokasi</label>
@@ -170,6 +253,60 @@
 
     descriptionInput.addEventListener('input', function () {
         descriptionCounter.textContent = this.value.length;
+    });
+
+    // Logika pemilihan salah satu kategori (Unit, Sparepart, Aksesoris) sebelum isi teks
+    const categoryRadios = document.querySelectorAll('.category-radio');
+    const noCatAlert = document.getElementById('noCategoryAlert');
+    const containerUnit = document.getElementById('container_unit');
+    const containerSparepart = document.getElementById('container_sparepart');
+    const containerAksesoris = document.getElementById('container_aksesoris');
+    const inputUnit = document.getElementById('unit');
+    const inputSparepart = document.getElementById('sparepart');
+    const inputAksesoris = document.getElementById('aksesoris');
+
+    function updateCategoryFields(selected) {
+        if (!selected) {
+            if (noCatAlert) noCatAlert.classList.remove('d-none');
+            containerUnit?.classList.add('d-none');
+            containerSparepart?.classList.add('d-none');
+            containerAksesoris?.classList.add('d-none');
+            if (inputUnit) inputUnit.disabled = true;
+            if (inputSparepart) inputSparepart.disabled = true;
+            if (inputAksesoris) inputAksesoris.disabled = true;
+            return;
+        }
+
+        if (noCatAlert) noCatAlert.classList.add('d-none');
+
+        const isUnit = selected === 'unit';
+        containerUnit?.classList.toggle('d-none', !isUnit);
+        if (inputUnit) {
+            inputUnit.disabled = !isUnit;
+            if (isUnit) inputUnit.focus();
+        }
+
+        const isPart = selected === 'sparepart';
+        containerSparepart?.classList.toggle('d-none', !isPart);
+        if (inputSparepart) {
+            inputSparepart.disabled = !isPart;
+            if (isPart) inputSparepart.focus();
+        }
+
+        const isAcc = selected === 'aksesoris';
+        containerAksesoris?.classList.toggle('d-none', !isAcc);
+        if (inputAksesoris) {
+            inputAksesoris.disabled = !isAcc;
+            if (isAcc) inputAksesoris.focus();
+        }
+    }
+
+    categoryRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            if (this.checked) {
+                updateCategoryFields(this.value);
+            }
+        });
     });
 </script>
 @endpush

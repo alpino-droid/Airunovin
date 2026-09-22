@@ -54,7 +54,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon blue">◫</div>
+                <div class="stat-icon blue"><i class="bi bi-shield-shaded fs-4"></i></div>
                 <span class="pill success">Aktif</span>
             </div>
             <div class="stat-label">{{ __('Total Club') }}</div>
@@ -64,7 +64,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon green">✓</div>
+                <div class="stat-icon green"><i class="bi bi-shield-check fs-4"></i></div>
                 <span class="pill success">100%</span>
             </div>
             <div class="stat-label">Club Terdaftar</div>
@@ -74,7 +74,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon orange">📍</div>
+                <div class="stat-icon orange"><i class="bi bi-geo-alt fs-4"></i></div>
                 <span class="pill warning">{{ count($cities ?? []) }} Kota</span>
             </div>
             <div class="stat-label">Wilayah / Kota</div>
@@ -84,7 +84,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon purple">👥</div>
+                <div class="stat-icon purple"><i class="bi bi-people-fill fs-4"></i></div>
                 <span class="pill success">Terverifikasi</span>
             </div>
             <div class="stat-label">Total Pengguna</div>
@@ -156,9 +156,38 @@
                             <small class="text-muted">{{ $club->user->nama ?? 'Admin' }}</small>
                         </td>
                         <td>
-                            <span class="pill success">Aktif</span>
+                            @if($club->status === 'diterima')
+                                <span class="pill success">Diterima</span>
+                            @elseif($club->status === 'tolak')
+                                <span class="pill danger">Ditolak</span>
+                            @else
+                                <span class="pill warning">Pending</span>
+                            @endif
                         </td>
-                        <td class="text-end">
+                        <td class="text-end" style="min-width: 250px;">
+                            {{-- Moderasi Status Cepat --}}
+                            @if(!in_array($club->status, ['diterima', 'terimakasih']))
+                                <form action="{{ route('admin.club.status', $club->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="diterima">
+                                    <button type="submit" class="btn btn-sm btn-success me-1" title="Terima / Setujui Club">
+                                        <i class="bi bi-check-lg"></i> Terima
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($club->status !== 'tolak')
+                                <form action="{{ route('admin.club.status', $club->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="tolak">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger me-1" title="Tolak Club" onclick="return confirm('Apakah Anda yakin ingin menolak club ini?')">
+                                        <i class="bi bi-x-lg"></i> Tolak
+                                    </button>
+                                </form>
+                            @endif
+
                             <button type="button" class="btn btn-sm btn-outline-secondary btn-detail-club me-1"
                                     data-bs-toggle="modal" data-bs-target="#modalDetailClub"
                                     data-nama="{{ $club->nama }}"
@@ -166,6 +195,7 @@
                                     data-provinsi="{{ $provNama }}"
                                     data-city="{{ $club->city }}"
                                     data-pemilik="{{ $club->user->nama ?? '-' }}"
+                                    data-status="{{ $club->status }}"
                                     data-gform="{{ $club->gform_link ?? '-' }}"
                                     data-deskripsi="{{ $club->deskripsi }}"
                                     data-logo="{{ $logoUrl }}"
@@ -180,6 +210,7 @@
                                     data-induk="{{ $club->induk_organisasi }}"
                                     data-id-provinsi="{{ $club->id_provinsi }}"
                                     data-city="{{ $club->city }}"
+                                    data-status="{{ $club->status }}"
                                     data-gform="{{ $club->gform_link }}"
                                     data-deskripsi="{{ $club->deskripsi }}"
                                     title="Edit Club">
@@ -247,7 +278,15 @@
                         <label class="form-label fw-semibold">Kota / Daerah <span class="text-danger">*</span></label>
                         <input type="text" name="city" class="form-control" required placeholder="Contoh: Jakarta Selatan">
                     </div>
-                    <div class="col-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status Moderasi</label>
+                        <select name="status" class="form-select">
+                            <option value="diterima">Diterima (Aktif)</option>
+                            <option value="panding">Pending</option>
+                            <option value="tolak">Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Link Formulir Pendaftaran (GForm / Web)</label>
                         <input type="url" name="gform_link" class="form-control" placeholder="https://forms.gle/...">
                     </div>
@@ -305,7 +344,15 @@
                         <label class="form-label fw-semibold">Kota / Daerah <span class="text-danger">*</span></label>
                         <input type="text" id="editClubCity" name="city" class="form-control" required>
                     </div>
-                    <div class="col-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Status Moderasi</label>
+                        <select id="editClubStatus" name="status" class="form-select">
+                            <option value="diterima">Diterima (Aktif)</option>
+                            <option value="panding">Pending</option>
+                            <option value="tolak">Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Link Formulir Pendaftaran</label>
                         <input type="url" id="editClubGform" name="gform_link" class="form-control">
                     </div>
@@ -361,6 +408,10 @@
                             <td id="detailClubPemilik">-</td>
                         </tr>
                         <tr>
+                            <td class="text-muted">Status</td>
+                            <td id="detailClubStatus">-</td>
+                        </tr>
+                        <tr>
                             <td class="text-muted">Link GForm</td>
                             <td>
                                 <a id="detailClubGform" href="#" target="_blank" rel="noopener noreferrer" class="text-break">-</a>
@@ -395,6 +446,7 @@
                 document.getElementById('editClubInduk').value = this.dataset.induk || '';
                 document.getElementById('editClubProvinsi').value = this.dataset.idProvinsi || '';
                 document.getElementById('editClubCity').value = this.dataset.city || '';
+                document.getElementById('editClubStatus').value = this.dataset.status || 'panding';
                 document.getElementById('editClubGform').value = this.dataset.gform || '';
                 document.getElementById('editClubDeskripsi').value = this.dataset.deskripsi || '';
             });
@@ -407,6 +459,15 @@
                 document.getElementById('detailClubInduk').textContent = this.dataset.induk || '-';
                 document.getElementById('detailClubWilayah').textContent = (this.dataset.city || '-') + ' (' + (this.dataset.provinsi || '-') + ')';
                 document.getElementById('detailClubPemilik').textContent = this.dataset.pemilik || '-';
+
+                const status = this.dataset.status || 'panding';
+                let statusBadge = '<span class="pill warning">Pending</span>';
+                if (status === 'diterima' || status === 'terimakasih') {
+                    statusBadge = '<span class="pill success">Diterima</span>';
+                } else if (status === 'tolak') {
+                    statusBadge = '<span class="pill danger">Ditolak</span>';
+                }
+                document.getElementById('detailClubStatus').innerHTML = statusBadge;
 
                 const gform = this.dataset.gform;
                 const gformLink = document.getElementById('detailClubGform');

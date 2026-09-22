@@ -11,28 +11,41 @@
                 </div>
             </div>
             <div class="col">
-                <div class="d-flex gap-2">
-                    <form method="GET" action="{{ route('club') }}" class="d-flex gap-2">
-                        <select name="province" class="form-select">
+                <div class="d-flex gap-2 justify-content-end">
+                    <form method="GET" action="{{ route('club') }}" class="d-flex flex-wrap gap-2 justify-content-end">
+                        <input type="text" name="search" class="form-control" style="max-width: 200px;" placeholder="{{ __('Cari club...') }}" value="{{ request('search') ?? request('q') }}">
+                        <select name="province" class="form-select" style="max-width: 170px;">
                             <option value="">{{ __('All Provinces') }}</option>
                             @foreach($provinsi as $prov)
                                 <option value="{{ $prov->id }}" @selected(request('province') == $prov->id)>{{ $prov->provinsi }}</option>
                             @endforeach
                         </select>
-                        <select name="city" class="form-select">
+                        <select name="city" class="form-select" style="max-width: 150px;">
                             <option value="">{{ __('All Cities') }}</option>
                             @foreach($cities as $city)
                                 <option value="{{ $city }}" @selected(request('city') == $city)>{{ $city }}</option>
                             @endforeach
                         </select>
                         <button class="btn btn-primary" type="submit">Filter</button>
+                        @if(request('search') || request('q') || request('province') || request('city'))
+                            <a href="{{ route('club') }}" class="btn btn-outline-secondary" title="Reset Filter"><i class="bi bi-arrow-clockwise"></i></a>
+                        @endif
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container-xxl mt-5">
+    <div class="container-xxl mt-4">
+        @if(request('search') || request('q'))
+            <div class="alert alert-light border d-flex justify-content-between align-items-center py-2 px-3 mb-4">
+                <div>
+                    <i class="bi bi-search me-1 text-primary"></i> Menampilkan hasil pencarian untuk: <strong>"{{ request('search') ?? request('q') }}"</strong> 
+                    <span class="badge bg-secondary ms-1">{{ count($clubs) }} club ditemukan</span>
+                </div>
+                <a href="{{ route('club') }}" class="btn btn-sm btn-outline-secondary">Reset Pencarian</a>
+            </div>
+        @endif
         <p class="fs-3">{{ __('Club') }}</p>
         <div class="row justify-content-center g-2">
             @forelse($clubs as $club)
@@ -40,7 +53,7 @@
                     <a href="{{ route('isiClub', $club) }}" class="text-decoration-none text-dark">
                         <div class="card h-100" style="width: 13rem;">
                             <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                                <img src="{{ $club?->logo_url ?? asset('img/balnkLogo.png') }}" alt="Organization logo" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
+                                <img src="{{ $club?->logo_url ?? asset('img/balnkLogo.png') }}" alt="Organization logo" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <h5 class="card-title fw-bold text-truncate" title="Nama Organisasi">{{ $club->nama }}</h5>

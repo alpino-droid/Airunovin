@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\event;
+use App\Models\Provinsi;
+use App\Models\ProductPurchase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +30,10 @@ class UserController extends Controller
         if (!Auth::check()) return redirect()->route('login');
         $user = Auth::user();
         $events = event::where('id_user', Auth::id())->latest('created_at')->get();
-        return view('pages.dashboard', compact('user', 'events'));
+        $provinsi = Provinsi::orderBy('provinsi')->get();
+        $purchases = ProductPurchase::with('product')->where('id_user', Auth::id())->latest()->get();
+
+        return view('pages.dashboard', compact('user', 'events', 'provinsi', 'purchases'));
     }
 
     public function profil()
@@ -36,12 +41,20 @@ class UserController extends Controller
         if (!Auth::check()) return redirect()->route('login');
         $user = Auth::user();
         $events = event::where('id_user', Auth::id())->latest('created_at')->get();
-        return view('pages.dashboard', compact('user', 'events'));
+        $provinsi = Provinsi::orderBy('provinsi')->get();
+        $purchases = ProductPurchase::with('product')->where('id_user', Auth::id())->latest()->get();
+
+        return view('pages.dashboard', compact('user', 'events', 'provinsi', 'purchases'));
     }
 
     public function updateProfil(Request $request)
     {
         $user = Auth::user();
+
+        if ($request->filled('province') && !$request->filled('id_provinsi')) {
+            $request->merge(['id_provinsi' => $request->province]);
+        }
+
         $request->validate([
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'nama' => 'required|string|max:255',

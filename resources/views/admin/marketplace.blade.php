@@ -1,15 +1,15 @@
 @extends('layout.admin')
 
-@section('title', 'Marketplace Admin')
+@section('title', 'Marketplace (Toko) Admin')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
     <div>
-        <h1 class="page-title">{{ __('Marketplace Admin') }}</h1>
-        <p class="subtitle mb-0">{{ __('Kelola katalog produk, stok unit airsoft, sparepart, dan perlengkapan taktis.') }}</p>
+        <h1 class="page-title">{{ __('Marketplace (Toko) Admin') }}</h1>
+        <p class="subtitle mb-0">{{ __('Kelola daftar toko marketplace mitra, verifikasi pendaftaran toko, dan kelola akun penjual.') }}</p>
     </div>
-    <button type="button" class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahProduct">
-        <i class="bi bi-plus-lg me-1"></i> {{ __('+ Produk Baru') }}
+    <button type="button" class="btn btn-primary px-3" data-bs-toggle="modal" data-bs-target="#modalTambahMarketplace">
+        <i class="bi bi-plus-lg me-1"></i> {{ __('+ Toko Baru') }}
     </button>
 </div>
 
@@ -51,177 +51,180 @@
 
 {{-- Stat Cards --}}
 @php
-    $totalStock = $products->sum('stok');
-    $uniqueCategories = $products->pluck('jenis')->filter()->unique()->count();
-    $uniqueSellers = $products->pluck('id_user')->unique()->count();
+    $totalStores = count($marketplaces);
+    $pendingStores = $marketplaces->where('status', 'panding')->count();
+    $acceptedStores = $marketplaces->filter(fn($m) => in_array($m->status, ['diterima', 'terimakasih']))->count();
+    $rejectedStores = $marketplaces->where('status', 'tolak')->count();
 @endphp
 <div class="row g-4 mb-4">
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon blue">📦</div>
-                <span class="pill success">Katalog</span>
+                <div class="stat-icon blue"><i class="bi bi-shop fs-4"></i></div>
+                <span class="pill success">Total</span>
             </div>
-            <div class="stat-label">Total Produk</div>
-            <p class="stat-value">{{ count($products) }}</p>
+            <div class="stat-label">Total Toko</div>
+            <p class="stat-value">{{ $totalStores }}</p>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon green">✦</div>
-                <span class="pill success">Unit</span>
+                <div class="stat-icon green"><i class="bi bi-check-circle fs-4"></i></div>
+                <span class="pill success">Aktif</span>
             </div>
-            <div class="stat-label">Total Stok Tersedia</div>
-            <p class="stat-value">{{ $totalStock }}</p>
+            <div class="stat-label">Toko Disetujui</div>
+            <p class="stat-value">{{ $acceptedStores }}</p>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon orange">🏷</div>
-                <span class="pill warning">Jenis</span>
+                <div class="stat-icon orange"><i class="bi bi-hourglass-split fs-4"></i></div>
+                <span class="pill warning">Review</span>
             </div>
-            <div class="stat-label">Kategori Aktif</div>
-            <p class="stat-value">{{ $uniqueCategories }}</p>
+            <div class="stat-label">Menunggu (Pending)</div>
+            <p class="stat-value">{{ $pendingStores }}</p>
         </div>
     </div>
     <div class="col-md-3 col-sm-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon purple">🏪</div>
-                <span class="pill success">Mitra</span>
+                <div class="stat-icon purple"><i class="bi bi-x-circle fs-4"></i></div>
+                <span class="pill danger">Ditolak</span>
             </div>
-            <div class="stat-label">Toko / Penjual</div>
-            <p class="stat-value">{{ $uniqueSellers }}</p>
+            <div class="stat-label">Toko Ditolak</div>
+            <p class="stat-value">{{ $rejectedStores }}</p>
         </div>
     </div>
 </div>
 
-{{-- Panel Tabel Produk Marketplace --}}
+{{-- Panel Tabel Toko Marketplace --}}
 <div class="panel">
     <div class="panel-header d-flex justify-content-between align-items-center">
-        <h2 class="panel-title mb-0">Daftar Produk Marketplace</h2>
-        <span class="text-muted small">Total: {{ count($products) }} item</span>
+        <h2 class="panel-title mb-0">Daftar Toko Marketplace</h2>
+        <span class="text-muted small">Total: {{ $totalStores }} toko</span>
     </div>
     <div class="panel-body p-0">
         <div class="table-responsive">
             <table class="table align-middle mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 60px;">Foto</th>
-                        <th>Nama Produk</th>
-                        <th>Kategori</th>
-                        <th>Merk & Kondisi</th>
-                        <th>Harga</th>
-                        <th>Stok</th>
-                        <th>Penjual / Toko</th>
+                        <th style="width: 65px;">Logo</th>
+                        <th>Nama Toko & Deskripsi</th>
+                        <th>Pemilik Akun</th>
+                        <th>Kontak / No HP</th>
+                        <th>Total Produk</th>
                         <th>Status</th>
-                        <th class="text-end" style="min-width: 180px;">Aksi</th>
+                        <th>Terdaftar</th>
+                        <th class="text-end" style="min-width: 250px;">Aksi & Moderasi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($products as $prod)
+                    @forelse($marketplaces as $m)
                     @php
-                        $imgUrl = $prod->gambar
-                            ? (str_starts_with($prod->gambar, 'http') ? $prod->gambar : asset('storage/' . $prod->gambar))
+                        $logoUrl = $m->logo
+                            ? (str_starts_with($m->logo, 'http') ? $m->logo : asset('storage/' . $m->logo))
                             : asset('img/balnkLogo.png');
-                        $storeName = $prod->marketplace->nama ?? $prod->user->nama ?? 'Penjual';
-                        $payments = is_array($prod->payment_methods)
-                            ? $prod->payment_methods
-                            : (json_decode($prod->payment_methods ?? '[]', true) ?: []);
-                        $paymentsJson = json_encode($payments);
                     @endphp
                     <tr>
                         <td>
-                            <img src="{{ $imgUrl }}" alt="{{ $prod->nama }}" class="rounded object-fit-contain border p-1 bg-light" style="width: 48px; height: 48px;" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}';">
+                            <img src="{{ $logoUrl }}" alt="{{ $m->nama }}" class="rounded-circle object-fit-cover border p-1 bg-light" style="width: 46px; height: 46px;" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}';">
                         </td>
                         <td>
-                            <span class="member-name fw-bold text-dark text-truncate d-block" style="max-width: 200px;" title="{{ $prod->nama }}">
-                                {{ $prod->nama }}
+                            <span class="member-name fw-bold text-dark d-block">
+                                {{ $m->nama }}
                             </span>
-                            <small class="text-muted"><i class="bi bi-geo-alt"></i> {{ $prod->lokasi }}</small>
+                            <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;" title="{{ $m->deskripsi }}">
+                                {{ $m->deskripsi ?: 'Tidak ada deskripsi.' }}
+                            </small>
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark border">{{ $prod->jenis }}</span>
+                            <div class="fw-semibold text-dark">{{ $m->user->nama ?? '-' }}</div>
+                            <small class="text-muted">{{ $m->user->email ?? '-' }}</small>
                         </td>
                         <td>
-                            <div>{{ $prod->merk }}</div>
-                            <small class="text-muted">{{ $prod->kondisi }}</small>
+                            <span class="small text-muted">{{ $m->user->phone ?? '-' }}</span>
                         </td>
                         <td>
-                            <span class="fw-bold text-success">Rp {{ number_format($prod->harga, 0, ',', '.') }}</span>
+                            <span class="badge text-bg-secondary">{{ $m->products_count ?? 0 }} produk</span>
                         </td>
                         <td>
-                            @if($prod->stok > 3)
-                                <span class="badge text-bg-success">{{ $prod->stok }} unit</span>
-                            @elseif($prod->stok > 0)
-                                <span class="badge text-bg-warning">{{ $prod->stok }} unit</span>
+                            @if($m->status === 'diterima' || $m->status === 'terimakasih')
+                                <span class="pill success">Diterima</span>
+                            @elseif($m->status === 'tolak')
+                                <span class="pill danger">Ditolak</span>
                             @else
-                                <span class="badge text-bg-danger">Habis</span>
+                                <span class="pill warning">Pending</span>
                             @endif
                         </td>
                         <td>
-                            <div class="small fw-semibold text-dark">{{ $storeName }}</div>
-                            <small class="text-muted">{{ $prod->user->nama ?? '-' }}</small>
-                        </td>
-                        <td>
-                            @if($prod->stok > 0)
-                                <span class="pill success">Tersedia</span>
-                            @else
-                                <span class="pill danger">Kosong</span>
-                            @endif
+                            <small class="text-muted">{{ $m->created_at ? $m->created_at->translatedFormat('d M Y') : '-' }}</small>
                         </td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-secondary btn-detail-product me-1"
-                                    data-bs-toggle="modal" data-bs-target="#modalDetailProduct"
-                                    data-nama="{{ $prod->nama }}"
-                                    data-harga="Rp {{ number_format($prod->harga, 0, ',', '.') }}"
-                                    data-merk="{{ $prod->merk }}"
-                                    data-jenis="{{ $prod->jenis }}"
-                                    data-kondisi="{{ $prod->kondisi }}"
-                                    data-stok="{{ $prod->stok }}"
-                                    data-lokasi="{{ $prod->lokasi }}"
-                                    data-toko="{{ $storeName }}"
-                                    data-penjual="{{ $prod->user->nama ?? '-' }}"
-                                    data-deskripsi="{{ $prod->deskripsi ?? 'Tidak ada deskripsi.' }}"
-                                    data-gambar="{{ $imgUrl }}"
-                                    data-payments='{{ $paymentsJson }}'
-                                    title="Detail Produk">
-                                <i class="bi bi-eye"></i> Detail
+                            {{-- Moderasi Status Cepat --}}
+                            @if(!in_array($m->status, ['diterima', 'terimakasih']))
+                                <form action="{{ route('admin.marketplace.status', $m->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="diterima">
+                                    <button type="submit" class="btn btn-sm btn-success me-1" title="Terima / Setujui Toko">
+                                        <i class="bi bi-check-lg"></i> Terima
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($m->status !== 'tolak')
+                                <form action="{{ route('admin.marketplace.status', $m->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="tolak">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger me-1" title="Tolak Toko" onclick="return confirm('Apakah Anda yakin ingin menolak toko ini?')">
+                                        <i class="bi bi-x-lg"></i> Tolak
+                                    </button>
+                                </form>
+                            @endif
+
+                            <button type="button" class="btn btn-sm btn-outline-secondary btn-detail-marketplace me-1"
+                                    data-bs-toggle="modal" data-bs-target="#modalDetailMarketplace"
+                                    data-nama="{{ $m->nama }}"
+                                    data-pemilik="{{ $m->user->nama ?? '-' }}"
+                                    data-email="{{ $m->user->email ?? '-' }}"
+                                    data-phone="{{ $m->user->phone ?? '-' }}"
+                                    data-status="{{ $m->status }}"
+                                    data-produk-count="{{ $m->products_count ?? 0 }}"
+                                    data-deskripsi="{{ $m->deskripsi ?? 'Tidak ada deskripsi.' }}"
+                                    data-logo="{{ $logoUrl }}"
+                                    data-terdaftar="{{ $m->created_at ? $m->created_at->translatedFormat('d F Y') : '-' }}"
+                                    title="Detail Toko">
+                                <i class="bi bi-eye"></i>
                             </button>
 
-                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit-product me-1"
-                                    data-bs-toggle="modal" data-bs-target="#modalEditProduct"
-                                    data-id="{{ $prod->id }}"
-                                    data-nama="{{ $prod->nama }}"
-                                    data-harga="{{ $prod->harga }}"
-                                    data-merk="{{ $prod->merk }}"
-                                    data-jenis="{{ $prod->jenis }}"
-                                    data-kondisi="{{ $prod->kondisi }}"
-                                    data-stok="{{ $prod->stok }}"
-                                    data-lokasi="{{ $prod->lokasi }}"
-                                    data-id-marketplace="{{ $prod->id_marketplace }}"
-                                    data-deskripsi="{{ $prod->deskripsi }}"
-                                    data-payments='{{ $paymentsJson }}'
-                                    title="Edit Produk">
-                                <i class="bi bi-pencil"></i> Edit
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit-marketplace me-1"
+                                    data-bs-toggle="modal" data-bs-target="#modalEditMarketplace"
+                                    data-id="{{ $m->id }}"
+                                    data-nama="{{ $m->nama }}"
+                                    data-id-user="{{ $m->id_user }}"
+                                    data-status="{{ $m->status }}"
+                                    data-deskripsi="{{ $m->deskripsi }}"
+                                    title="Edit Toko">
+                                <i class="bi bi-pencil"></i>
                             </button>
 
-                            <form action="{{ route('admin.marketplace.destroy', $prod->id) }}" method="POST" class="d-inline form-delete-product">
+                            <form action="{{ route('admin.marketplace.destroy', $m->id) }}" method="POST" class="d-inline form-delete-marketplace">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Produk">
-                                    <i class="bi bi-trash"></i> Hapus
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Toko">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </form>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center py-5 text-muted">
-                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                            Belum ada produk di marketplace. Klik "+ Produk Baru" untuk menambahkan.
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-shop fs-2 d-block mb-2"></i>
+                            Belum ada toko marketplace terdaftar. Klik "+ Toko Baru" untuk menambahkan.
                         </td>
                     </tr>
                     @endforelse
@@ -232,180 +235,105 @@
 </div>
 
 {{-- ======================================================== --}}
-{{-- MODALS MARKETPLACE / PRODUCT                              --}}
+{{-- MODALS MARKETPLACE (TOKO)                                 --}}
 {{-- ======================================================== --}}
 
-{{-- Modal Tambah Produk --}}
-<div class="modal fade" id="modalTambahProduct" tabindex="-1" aria-labelledby="modalTambahProductLabel" aria-hidden="true">
+{{-- Modal Tambah Toko --}}
+<div class="modal fade" id="modalTambahMarketplace" tabindex="-1" aria-labelledby="modalTambahMarketplaceLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form action="{{ route('admin.marketplace.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="modalTambahProductLabel">
-                        <i class="bi bi-box-seam text-primary me-1"></i> Tambah Produk Baru
+                    <h5 class="modal-title fw-bold" id="modalTambahMarketplaceLabel">
+                        <i class="bi bi-shop text-primary me-1"></i> Tambah Toko Marketplace Baru
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body row g-3">
                     <div class="col-md-8">
-                        <label class="form-label fw-semibold">Nama Produk <span class="text-danger">*</span></label>
-                        <input type="text" name="nama" class="form-control" required placeholder="Contoh: M4 Carbine AEG M-LOK Tactical Edition">
+                        <label class="form-label fw-semibold">Nama Toko Marketplace <span class="text-danger">*</span></label>
+                        <input type="text" name="nama" class="form-control" required placeholder="Contoh: Tactical Airsoft Station">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Harga (Rp) <span class="text-danger">*</span></label>
-                        <input type="number" name="harga" class="form-control" required min="0" placeholder="Contoh: 2850000">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Merek / Produsen <span class="text-danger">*</span></label>
-                        <input type="text" name="merk" class="form-control" required placeholder="Contoh: Specna Arms / Tokyo Marui / Condor">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Kategori / Jenis <span class="text-danger">*</span></label>
-                        <select name="jenis" class="form-select" required>
-                            <option value="">Pilih Kategori...</option>
-                            <option value="Unit">Unit Airsoft</option>
-                            <option value="Sparepart">Sparepart / Upgrade</option>
-                            <option value="Perlengkapan">Perlengkapan / Tactical Gear</option>
-                            <option value="Aksesoris">Aksesoris / Optic & Scope</option>
-                            <option value="Amunisi">Amunisi BB & Gas</option>
+                        <label class="form-label fw-semibold">Status Moderasi</label>
+                        <select name="status" class="form-select">
+                            <option value="diterima">Diterima (Aktif)</option>
+                            <option value="panding">Pending</option>
+                            <option value="tolak">Ditolak</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Kondisi <span class="text-danger">*</span></label>
-                        <select name="kondisi" class="form-select" required>
-                            <option value="Baru">Baru</option>
-                            <option value="Sangat baik">Sangat baik (Like New)</option>
-                            <option value="Bekas">Bekas (Second Layak Pakai)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Stok Unit <span class="text-danger">*</span></label>
-                        <input type="number" name="stok" class="form-control" required min="0" value="1">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Lokasi / Kota <span class="text-danger">*</span></label>
-                        <input type="text" name="lokasi" class="form-control" required placeholder="Contoh: Surabaya">
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold">Toko / Marketplace Mitra</label>
-                        <select name="id_marketplace" class="form-select">
-                            <option value="">Pilih Toko Penjual...</option>
-                            @foreach($marketplaces as $m)
-                                <option value="{{ $m->id }}">{{ $m->nama }} ({{ $m->user->nama ?? 'Admin' }})</option>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Pemilik Toko (Akun Pengguna)</label>
+                        <select name="id_user" class="form-select">
+                            <option value="">Pilih Akun Pengguna...</option>
+                            @foreach($users as $u)
+                                <option value="{{ $u->id }}">{{ $u->nama }} ({{ $u->email }})</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Metode Pembayaran yang Diterima</label>
-                        <div class="d-flex flex-wrap gap-3">
-                            @foreach(['Transfer Bank', 'QRIS', 'COD', 'DANA', 'GoPay'] as $pm)
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="payment_methods[]" value="{{ $pm }}" id="add_pm_{{ \Illuminate\Support\Str::slug($pm) }}" {{ in_array($pm, ['Transfer Bank', 'QRIS']) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="add_pm_{{ \Illuminate\Support\Str::slug($pm) }}">{{ $pm }}</label>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Deskripsi Produk</label>
-                        <textarea name="deskripsi" class="form-control" rows="3" placeholder="Rincian spesifikasi unit, material, FPS, kelengkapan dalam boks..."></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Foto Produk</label>
-                        <input type="file" name="gambar" class="form-control" accept="image/*">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Logo Toko</label>
+                        <input type="file" name="logo" class="form-control" accept="image/*">
                         <div class="form-text">Format: JPG, PNG, WEBP. Maksimal 2MB.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Deskripsi Toko</label>
+                        <textarea name="deskripsi" class="form-control" rows="4" placeholder="Ceritakan profil toko, spesialisasi unit, garansi, atau kebijakan toko..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Produk</button>
+                    <button type="submit" class="btn btn-primary">Simpan Toko</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-{{-- Modal Edit Produk --}}
-<div class="modal fade" id="modalEditProduct" tabindex="-1" aria-labelledby="modalEditProductLabel" aria-hidden="true">
+{{-- Modal Edit Toko --}}
+<div class="modal fade" id="modalEditMarketplace" tabindex="-1" aria-labelledby="modalEditMarketplaceLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form id="formEditProduct" method="POST" enctype="multipart/form-data">
+            <form id="formEditMarketplace" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="modalEditProductLabel">
-                        <i class="bi bi-pencil-square text-primary me-1"></i> Edit Data Produk
+                    <h5 class="modal-title fw-bold" id="modalEditMarketplaceLabel">
+                        <i class="bi bi-pencil-square text-primary me-1"></i> Edit Data Toko Marketplace
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body row g-3">
                     <div class="col-md-8">
-                        <label class="form-label fw-semibold">Nama Produk <span class="text-danger">*</span></label>
-                        <input type="text" id="editProductNama" name="nama" class="form-control" required>
+                        <label class="form-label fw-semibold">Nama Toko Marketplace <span class="text-danger">*</span></label>
+                        <input type="text" id="editMarketplaceNama" name="nama" class="form-control" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Harga (Rp) <span class="text-danger">*</span></label>
-                        <input type="number" id="editProductHarga" name="harga" class="form-control" required min="0">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Merek <span class="text-danger">*</span></label>
-                        <input type="text" id="editProductMerk" name="merk" class="form-control" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Kategori / Jenis <span class="text-danger">*</span></label>
-                        <select id="editProductJenis" name="jenis" class="form-select" required>
-                            <option value="Unit">Unit Airsoft</option>
-                            <option value="Sparepart">Sparepart / Upgrade</option>
-                            <option value="Perlengkapan">Perlengkapan / Tactical Gear</option>
-                            <option value="Aksesoris">Aksesoris / Optic & Scope</option>
-                            <option value="Amunisi">Amunisi BB & Gas</option>
+                        <label class="form-label fw-semibold">Status Moderasi</label>
+                        <select id="editMarketplaceStatus" name="status" class="form-select">
+                            <option value="diterima">Diterima (Aktif)</option>
+                            <option value="panding">Pending</option>
+                            <option value="tolak">Ditolak</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Kondisi <span class="text-danger">*</span></label>
-                        <select id="editProductKondisi" name="kondisi" class="form-select" required>
-                            <option value="Baru">Baru</option>
-                            <option value="Sangat baik">Sangat baik</option>
-                            <option value="Bekas">Bekas</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Stok Unit <span class="text-danger">*</span></label>
-                        <input type="number" id="editProductStok" name="stok" class="form-control" required min="0">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Lokasi <span class="text-danger">*</span></label>
-                        <input type="text" id="editProductLokasi" name="lokasi" class="form-control" required>
-                    </div>
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold">Toko / Marketplace Mitra</label>
-                        <select id="editProductIdMarketplace" name="id_marketplace" class="form-select">
-                            <option value="">Pilih Toko Penjual...</option>
-                            @foreach($marketplaces as $m)
-                                <option value="{{ $m->id }}">{{ $m->nama }} ({{ $m->user->nama ?? 'Admin' }})</option>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Pemilik Toko</label>
+                        <select id="editMarketplaceIdUser" name="id_user" class="form-select">
+                            <option value="">Pilih Akun Pengguna...</option>
+                            @foreach($users as $u)
+                                <option value="{{ $u->id }}">{{ $u->nama }} ({{ $u->email }})</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Metode Pembayaran</label>
-                        <div class="d-flex flex-wrap gap-3" id="editPaymentMethodsContainer">
-                            @foreach(['Transfer Bank', 'QRIS', 'COD', 'DANA', 'GoPay'] as $pm)
-                                <div class="form-check">
-                                    <input class="form-check-input edit-pm-checkbox" type="checkbox" name="payment_methods[]" value="{{ $pm }}" id="edit_pm_{{ \Illuminate\Support\Str::slug($pm) }}">
-                                    <label class="form-check-label" for="edit_pm_{{ \Illuminate\Support\Str::slug($pm) }}">{{ $pm }}</label>
-                                </div>
-                            @endforeach
-                        </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Ganti Logo Toko (opsional)</label>
+                        <input type="file" name="logo" class="form-control" accept="image/*">
+                        <div class="form-text">Biarkan kosong jika tidak ingin mengubah logo saat ini.</div>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Deskripsi Produk</label>
-                        <textarea id="editProductDeskripsi" name="deskripsi" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold">Ganti Foto Produk (opsional)</label>
-                        <input type="file" name="gambar" class="form-control" accept="image/*">
-                        <div class="form-text">Biarkan kosong jika tidak ingin mengganti gambar produk saat ini.</div>
+                        <label class="form-label fw-semibold">Deskripsi Toko</label>
+                        <textarea id="editMarketplaceDeskripsi" name="deskripsi" class="form-control" rows="4"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -417,57 +345,53 @@
     </div>
 </div>
 
-{{-- Modal Detail Produk --}}
-<div class="modal fade" id="modalDetailProduct" tabindex="-1" aria-labelledby="modalDetailProductLabel" aria-hidden="true">
+{{-- Modal Detail Toko --}}
+<div class="modal fade" id="modalDetailMarketplace" tabindex="-1" aria-labelledby="modalDetailMarketplaceLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="modalDetailProductLabel">
-                    <i class="bi bi-info-circle text-primary me-1"></i> Rincian Produk
+                <h5 class="modal-title fw-bold" id="modalDetailMarketplaceLabel">
+                    <i class="bi bi-shop-window text-primary me-1"></i> Rincian Toko Marketplace
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3 text-center">
-                    <img id="detailProductGambar" src="" alt="Foto Produk" class="img-fluid rounded border p-2 bg-light" style="max-height: 180px; object-fit: contain;">
+                    <img id="detailMarketplaceLogo" src="" alt="Logo Toko" class="img-fluid rounded-circle border p-2 bg-light" style="width: 100px; height: 100px; object-fit: cover;">
                 </div>
                 <table class="table table-sm table-borderless">
                     <tbody>
                         <tr>
-                            <td class="text-muted" style="width: 130px;">Nama Produk</td>
-                            <td class="fw-bold" id="detailProductNama">-</td>
+                            <td class="text-muted" style="width: 130px;">Nama Toko</td>
+                            <td class="fw-bold" id="detailMarketplaceNama">-</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Harga</td>
-                            <td class="fw-bold text-success fs-6" id="detailProductHarga">-</td>
+                            <td class="text-muted">Pemilik</td>
+                            <td class="fw-semibold" id="detailMarketplacePemilik">-</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Kategori / Jenis</td>
-                            <td id="detailProductJenis">-</td>
+                            <td class="text-muted">Email</td>
+                            <td id="detailMarketplaceEmail">-</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Merek & Kondisi</td>
-                            <td id="detailProductMerk">-</td>
+                            <td class="text-muted">No. WhatsApp</td>
+                            <td id="detailMarketplacePhone">-</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Stok Unit</td>
-                            <td id="detailProductStok">-</td>
+                            <td class="text-muted">Total Produk</td>
+                            <td id="detailMarketplaceProduk">-</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Lokasi</td>
-                            <td id="detailProductLokasi">-</td>
+                            <td class="text-muted">Status</td>
+                            <td id="detailMarketplaceStatus">-</td>
                         </tr>
                         <tr>
-                            <td class="text-muted">Toko / Penjual</td>
-                            <td id="detailProductToko">-</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted">Pembayaran</td>
-                            <td id="detailProductPayments">-</td>
+                            <td class="text-muted">Terdaftar Pada</td>
+                            <td id="detailMarketplaceTerdaftar">-</td>
                         </tr>
                         <tr>
                             <td class="text-muted align-top">Deskripsi</td>
-                            <td id="detailProductDeskripsi" style="white-space: pre-line;">-</td>
+                            <td id="detailMarketplaceDeskripsi" style="white-space: pre-line;">-</td>
                         </tr>
                     </tbody>
                 </table>
@@ -483,63 +407,52 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // 1. Tangani pengisian data Modal Edit Produk
-        const formEditProduct = document.getElementById('formEditProduct');
-        document.querySelectorAll('.btn-edit-product').forEach(btn => {
+        // 1. Tangani pengisian data Modal Edit Toko
+        const formEditMarketplace = document.getElementById('formEditMarketplace');
+        document.querySelectorAll('.btn-edit-marketplace').forEach(btn => {
             btn.addEventListener('click', function () {
                 const id = this.dataset.id;
-                formEditProduct.action = "{{ url('admin/marketplace') }}/" + id;
+                formEditMarketplace.action = "{{ url('admin/marketplace') }}/" + id;
 
-                document.getElementById('editProductNama').value = this.dataset.nama || '';
-                document.getElementById('editProductHarga').value = this.dataset.harga || '';
-                document.getElementById('editProductMerk').value = this.dataset.merk || '';
-                document.getElementById('editProductJenis').value = this.dataset.jenis || '';
-                document.getElementById('editProductKondisi').value = this.dataset.kondisi || '';
-                document.getElementById('editProductStok').value = this.dataset.stok || '';
-                document.getElementById('editProductLokasi').value = this.dataset.lokasi || '';
-                document.getElementById('editProductIdMarketplace').value = this.dataset.idMarketplace || '';
-                document.getElementById('editProductDeskripsi').value = this.dataset.deskripsi || '';
-
-                // Reset & centang checkbox payment methods
-                const payments = JSON.parse(this.dataset.payments || '[]');
-                document.querySelectorAll('.edit-pm-checkbox').forEach(cb => {
-                    cb.checked = payments.includes(cb.value);
-                });
+                document.getElementById('editMarketplaceNama').value = this.dataset.nama || '';
+                document.getElementById('editMarketplaceStatus').value = this.dataset.status || 'panding';
+                document.getElementById('editMarketplaceIdUser').value = this.dataset.idUser || '';
+                document.getElementById('editMarketplaceDeskripsi').value = this.dataset.deskripsi || '';
             });
         });
 
-        // 2. Tangani pengisian data Modal Detail Produk
-        document.querySelectorAll('.btn-detail-product').forEach(btn => {
+        // 2. Tangani pengisian data Modal Detail Toko
+        document.querySelectorAll('.btn-detail-marketplace').forEach(btn => {
             btn.addEventListener('click', function () {
-                document.getElementById('detailProductNama').textContent = this.dataset.nama || '-';
-                document.getElementById('detailProductHarga').textContent = this.dataset.harga || '-';
-                document.getElementById('detailProductJenis').textContent = this.dataset.jenis || '-';
-                document.getElementById('detailProductMerk').textContent = (this.dataset.merk || '-') + ' (' + (this.dataset.kondisi || '-') + ')';
-                document.getElementById('detailProductStok').textContent = (this.dataset.stok || '0') + ' unit';
-                document.getElementById('detailProductLokasi').textContent = this.dataset.lokasi || '-';
-                document.getElementById('detailProductToko').textContent = (this.dataset.toko || '-') + ' (Akun: ' + (this.dataset.penjual || '-') + ')';
-                document.getElementById('detailProductDeskripsi').textContent = this.dataset.deskripsi || '-';
+                document.getElementById('detailMarketplaceNama').textContent = this.dataset.nama || '-';
+                document.getElementById('detailMarketplacePemilik').textContent = this.dataset.pemilik || '-';
+                document.getElementById('detailMarketplaceEmail').textContent = this.dataset.email || '-';
+                document.getElementById('detailMarketplacePhone').textContent = this.dataset.phone || '-';
+                document.getElementById('detailMarketplaceProduk').textContent = (this.dataset.produkCount || '0') + ' produk';
+                document.getElementById('detailMarketplaceTerdaftar').textContent = this.dataset.terdaftar || '-';
+                document.getElementById('detailMarketplaceDeskripsi').textContent = this.dataset.deskripsi || '-';
 
-                const payments = JSON.parse(this.dataset.payments || '[]');
-                const paymentsTd = document.getElementById('detailProductPayments');
-                if (payments && payments.length > 0) {
-                    paymentsTd.innerHTML = payments.map(p => `<span class="badge bg-light text-dark border me-1">${p}</span>`).join('');
-                } else {
-                    paymentsTd.textContent = '-';
+                const status = this.dataset.status || 'panding';
+                let statusBadge = '<span class="pill warning">Pending</span>';
+                if (status === 'diterima' || status === 'terimakasih') {
+                    statusBadge = '<span class="pill success">Diterima</span>';
+                } else if (status === 'tolak') {
+                    statusBadge = '<span class="pill danger">Ditolak</span>';
                 }
+                document.getElementById('detailMarketplaceStatus').innerHTML = statusBadge;
 
-                const gambar = this.dataset.gambar;
-                const imgElem = document.getElementById('detailProductGambar');
-                if (gambar) {
-                    imgElem.src = gambar;
+                const logo = this.dataset.logo;
+                const imgElem = document.getElementById('detailMarketplaceLogo');
+                if (logo) {
+                    imgElem.src = logo;
                 }
             });
         });
 
-        // 3. Konfirmasi sebelum Hapus Produk
-        document.querySelectorAll('.form-delete-product').forEach(form => {
+        // 3. Konfirmasi sebelum Hapus Toko
+        document.querySelectorAll('.form-delete-marketplace').forEach(form => {
             form.addEventListener('submit', function (e) {
-                if (!confirm('Apakah Anda yakin ingin menghapus produk ini dari marketplace?')) {
+                if (!confirm('Apakah Anda yakin ingin menghapus toko marketplace ini? Semua produk yang tertaut akan terpengaruh.')) {
                     e.preventDefault();
                 }
             });

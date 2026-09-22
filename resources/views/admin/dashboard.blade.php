@@ -22,7 +22,7 @@
 @if(session('success'))
     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
         <div class="d-flex align-items-center gap-2">
-            <span>✓</span>
+            <i class="bi bi-check-circle-fill"></i>
             <div><strong>Berhasil!</strong> {{ session('success') }}</div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -32,7 +32,7 @@
 @if(session('error'))
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
         <div class="d-flex align-items-center gap-2">
-            <span>⚠</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
             <div><strong>Gagal!</strong> {{ session('error') }}</div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -42,7 +42,7 @@
 @if(isset($errors) && $errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
         <div class="d-flex align-items-center gap-2 mb-1">
-            <span>⚠</span>
+            <i class="bi bi-exclamation-triangle-fill"></i>
             <div><strong>Terjadi kesalahan input:</strong></div>
         </div>
         <ul class="mb-0 ps-3">
@@ -59,48 +59,48 @@
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon blue">◫</div>
+                <div class="stat-icon blue"><i class="bi bi-shield-shaded fs-4"></i></div>
                 <span class="pill success">+12.4%</span>
             </div>
             <div class="stat-label">{{ __('Total Club') }}</div>
             <p class="stat-value">{{ count($clubs) }}</p>
-            <div class="trend up">▲ {{ count($clubs) }} club terdaftar</div>
+            <div class="trend up"><i class="bi bi-arrow-up-short"></i> {{ count($clubs) }} club terdaftar</div>
         </div>
     </div>
 
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon green">✦</div>
+                <div class="stat-icon green"><i class="bi bi-calendar-event fs-4"></i></div>
                 <span class="pill success">+8.2%</span>
             </div>
             <div class="stat-label">{{ __('Active Events') }}</div>
             <p class="stat-value">{{ count($events) }}</p>
-            <div class="trend up">▲ {{ count($events) }} event aktif</div>
+            <div class="trend up"><i class="bi bi-arrow-up-short"></i> {{ count($events) }} event aktif</div>
         </div>
     </div>
 
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon orange">📦</div>
+                <div class="stat-icon orange"><i class="bi bi-box-seam fs-4"></i></div>
                 <span class="pill warning">+5.1%</span>
             </div>
             <div class="stat-label">{{ __('Total Produk') }}</div>
             <p class="stat-value">{{ $totalProducts ?? 0 }}</p>
-            <div class="trend up">▲ Produk marketplace</div>
+            <div class="trend up"><i class="bi bi-arrow-up-short"></i> Produk marketplace</div>
         </div>
     </div>
 
     <div class="col-xl-3 col-md-6">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="stat-icon purple">👤</div>
+                <div class="stat-icon purple"><i class="bi bi-people-fill fs-4"></i></div>
                 <span class="pill success">+11%</span>
             </div>
             <div class="stat-label">{{ __('Total Pendaftar') }}</div>
             <p class="stat-value">{{ $totalUsers ?? 0 }}</p>
-            <div class="trend up">▲ Pengguna terdaftar</div>
+            <div class="trend up"><i class="bi bi-arrow-up-short"></i> Pengguna terdaftar</div>
         </div>
     </div>
 </div>

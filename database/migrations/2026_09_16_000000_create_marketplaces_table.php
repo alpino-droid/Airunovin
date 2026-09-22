@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('nama');
             $table->text('deskripsi')->nullable();
             $table->string('logo')->nullable();
-            $table->string('status')->default('active');
+            $table->enum('status', ['panding', 'tolak', 'diterima'])->default('panding');
             $table->timestamps();
         });
     }

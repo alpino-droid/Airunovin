@@ -26,7 +26,17 @@ class Club extends Model
         'city',
         'gform_link',
         'id_user',
+        'status',
     ];
+
+    public function setStatusAttribute($value): void
+    {
+        $val = strtolower(trim((string) $value));
+        if ($val === 'pending') $val = 'panding';
+        if ($val === 'terima' || $val === 'terimakasih' || $val === 'active') $val = 'diterima';
+        if ($val === 'ditolak' || $val === 'inactive') $val = 'tolak';
+        $this->attributes['status'] = in_array($val, ['panding', 'tolak', 'diterima']) ? $val : 'panding';
+    }
 
     // ==========================================
     // RELASI

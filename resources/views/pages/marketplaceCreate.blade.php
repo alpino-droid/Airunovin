@@ -27,8 +27,8 @@
                     <div class="col-md-6">
                         <label for="status" class="form-label fw-semibold">Status</label>
                         <select id="status" name="status" class="form-select @error('status') is-invalid @enderror" required>
-                            @foreach(['active' => 'Aktif', 'inactive' => 'Nonaktif'] as $value => $label)
-                                <option value="{{ $value }}" @selected(old('status', $marketplace->status ?? 'active') === $value)>{{ $label }}</option>
+                            @foreach(['panding' => 'Pending', 'diterima' => 'Diterima', 'tolak' => 'Ditolak'] as $value => $label)
+                                <option value="{{ $value }}" @selected(in_array(old('status', $marketplace->status ?? 'panding'), [$value, $value === 'diterima' ? 'terimakasih' : '']))>{{ $label }}</option>
                             @endforeach
                         </select>
                         @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror

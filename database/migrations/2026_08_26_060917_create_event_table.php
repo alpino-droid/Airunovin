@@ -24,6 +24,7 @@ return new class extends Migration
             $table->integer('htm')->nullable();
             $table->text('deskripsi')->nullable();
             $table->json('poster')->nullable();
+            $table->enum('status', ['panding', 'tolak', 'diterima'])->default('panding');
             $table->timestamps();
         });
     }

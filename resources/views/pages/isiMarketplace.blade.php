@@ -10,6 +10,22 @@
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     }
 
+    @media (min-width: 992px) {
+        .product-detail__media-col {
+            align-self: stretch;
+        }
+
+        .product-detail__media {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 90px;
+            z-index: 10;
+            max-height: calc(100vh - 110px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+    }
+
     .product-detail__main-image {
         aspect-ratio: 1 / 1;
         width: 100%;
@@ -107,9 +123,9 @@
             <span class="text-dark fw-semibold text-truncate d-inline-block align-bottom" style="max-width: 250px;">{{ $product->nama }}</span>
         </nav>
 
-        <div class="row g-4 g-xl-5 align-items-start">
+        <div class="row g-4 g-xl-5">
             {{-- ==================== KOLOM KIRI: GAMBAR PRODUK ==================== --}}
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6 product-detail__media-col">
                 @php
                     $imgUrl = $product->gambar
                         ? (str_starts_with($product->gambar, 'http') ? $product->gambar : asset('storage/' . $product->gambar))
@@ -211,9 +227,15 @@
                     {{-- Tombol Tindakan --}}
                     <div class="d-grid gap-2 d-sm-flex">
                         @if ($product->stok > 0)
-                            <button type="button" class="btn btn-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#buyProductModal">
-                                <i class="bi bi-bag-check me-1" aria-hidden="true"></i> Beli sekarang
-                            </button>
+                            @auth
+                                <button type="button" class="btn btn-primary flex-grow-1" data-bs-toggle="modal" data-bs-target="#buyProductModal">
+                                    <i class="bi bi-bag-check me-1" aria-hidden="true"></i> Beli sekarang
+                                </button>
+                            @else
+                                <a href="{{ route('login') }}" class="btn btn-primary flex-grow-1" onclick="alert('Silakan login terlebih dahulu untuk melakukan pembelian produk agar tercatat di dashboard Anda.')">
+                                    <i class="bi bi-bag-check me-1" aria-hidden="true"></i> Beli sekarang
+                                </a>
+                            @endauth
                         @else
                             <button type="button" class="btn btn-secondary flex-grow-1" disabled>
                                 <i class="bi bi-x-circle me-1" aria-hidden="true"></i> Stok Habis
@@ -241,8 +263,12 @@
                     }
                 @endphp
 
+                @php
+                    $marketTarget = $product->id_marketplace ?: ($product->marketplace?->id ?: $product->id_user);
+                @endphp
+
                 <div class="product-detail__panel rounded-3 p-3 mt-3 d-flex align-items-center gap-3">
-                    <a href="{{ route('market') }}" class="text-decoration-none" title="Lihat profil penjual">
+                    <a href="{{ route('market', $marketTarget) }}" class="text-decoration-none" title="Lihat profil toko penjual">
                         @if ($product->marketplace && $product->marketplace->logo)
                             <img src="{{ asset('storage/' . $product->marketplace->logo) }}" alt="{{ $displayName }}" class="product-detail__seller-avatar rounded-circle object-fit-cover" onerror="this.onerror=null; this.replaceWith(document.createElement('div'))">
                         @else
@@ -254,7 +280,9 @@
 
                     <div class="flex-grow-1">
                         <span class="text-muted small d-block">Dijual oleh</span>
-                        <strong class="text-dark d-block">{{ $displayName }}</strong>
+                        <a href="{{ route('market', $marketTarget) }}" class="text-decoration-none text-dark" title="Kunjungi toko penjual">
+                            <strong class="text-dark d-block">{{ $displayName }} <i class="bi bi-box-arrow-up-right small text-muted ms-1" style="font-size: 0.75rem;"></i></strong>
+                        </a>
                         @if ($sellerStore && $sellerUser)
                             <span class="text-muted small">{{ $sellerUser }} &bull; <i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $product->lokasi }}</span>
                         @else
@@ -297,9 +325,9 @@
                                 <div class="card h-100" style="width: 13rem;">
                                     <div class="card-img-top product-image-frame">
                                         @if ($produk->gambar)
-                                            <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}';">
+                                            <img src="{{ asset('storage/' . $produk->gambar) }}" alt="{{ $produk->nama }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}';">
                                         @else
-                                            <img src="{{ asset('img/balnkLogo.png') }}" alt="{{ $produk->nama }}" class="img-fluid" style="max-width: 100%; max-height: 100%; object-fit: contain;" loading="lazy">
+                                            <img src="{{ asset('img/balnkLogo.png') }}" alt="{{ $produk->nama }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
                                         @endif
                                     </div>
                                     <div class="card-body d-flex flex-column">
@@ -309,7 +337,7 @@
                                             <li><i class="bi bi-tag" aria-hidden="true"></i> <span class="text-muted">{{ $produk->merk }}</span></li>
                                             <li><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> <span class="text-muted">{{ $produk->jenis }}</span></li>
                                         </ul>
-                                        <div class="mt-auto pt-2 border-top text-muted small"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $produk->lokasi }}</div>
+                                        <div class="mt-auto pt-2 border-top text-muted"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $produk->lokasi }}</div>
                                     </div>
                                 </div>
                             </a>
@@ -393,14 +421,14 @@
                         {{-- Data Pembeli --}}
                         <div class="mb-3">
                             <label for="buyerName" class="form-label fw-semibold small">Nama Pembeli <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="buyerName" placeholder="Masukkan nama lengkap Anda" required autocomplete="name">
+                            <input type="text" class="form-control" id="buyerName" value="{{ Auth::check() ? Auth::user()->nama : '' }}" placeholder="Masukkan nama lengkap Anda" required autocomplete="name">
                             <div class="invalid-feedback">Silakan masukkan nama Anda.</div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="buyerPhone" class="form-label fw-semibold small">Nomor WhatsApp Pembeli <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" id="buyerPhone" required autocomplete="tel" placeholder="Contoh: 081234567890">
-                            <div class="invalid-feedback">Silakan masukkan nomor WhatsApp yang aktif.</div>
+                            <label for="buyerPhone" class="form-label fw-semibold small">Nomor Telepon / WhatsApp Pembeli <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="buyerPhone" value="{{ Auth::check() ? Auth::user()->phone : '' }}" required autocomplete="tel" placeholder="Contoh: 081234567890">
+                            <div class="invalid-feedback">Silakan masukkan nomor telepon yang aktif.</div>
                         </div>
 
                         {{-- Jumlah Pesanan dengan Stepper --}}
@@ -469,14 +497,15 @@
 
                         {{-- Notifikasi Sukses / Pesan Konfirmasi --}}
                         <div class="alert alert-success d-none mb-0" id="checkoutSuccessAlert" role="alert">
-                            <i class="bi bi-check-circle me-1" aria-hidden="true"></i> Pesanan sedang dialihkan ke WhatsApp penjual...
+                            <i class="bi bi-check-circle me-1" aria-hidden="true"></i> Pesanan berhasil dibuat! Mengalihkan ke Dashboard...
                         </div>
+                        <div class="alert alert-danger d-none mb-0 mt-2" id="checkoutErrorAlert" role="alert"></div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" form="purchaseForm" class="btn btn-primary" id="confirmPurchase">
-                        <i class="bi bi-whatsapp me-1" aria-hidden="true"></i> Pesan via WhatsApp
+                        <i class="bi bi-bag-check me-1" aria-hidden="true"></i> Pesan
                     </button>
                 </div>
             </div>
@@ -608,20 +637,25 @@
             });
         }
 
-        // 4. Penanganan Form Checkout / Pemesanan via WhatsApp
+        // 4. Penanganan Form Checkout / Pemesanan Produk Langsung
         const purchaseForm = document.getElementById('purchaseForm');
-        const sellerPhoneTarget = '{{ $cleanPhone ?? "6281234567890" }}';
-        const sellerDisplayName = '{{ addslashes($displayName) }}';
-        const productName = '{{ addslashes($product->nama) }}';
-        const productUrl = window.location.href;
 
         if (purchaseForm) {
-            purchaseForm.addEventListener('submit', function (e) {
+            purchaseForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 const buyerNameInput = document.getElementById('buyerName');
                 const buyerPhoneInput = document.getElementById('buyerPhone');
                 const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked');
+                const confirmBtn = document.getElementById('confirmPurchase');
+                const successAlert = document.getElementById('checkoutSuccessAlert');
+                const errorAlert = document.getElementById('checkoutErrorAlert');
+
+                if (successAlert) successAlert.classList.add('d-none');
+                if (errorAlert) {
+                    errorAlert.classList.add('d-none');
+                    errorAlert.textContent = '';
+                }
 
                 let isValid = true;
 
@@ -641,38 +675,66 @@
 
                 if (!isValid) return;
 
-                const qty = parseInt(quantityInput.value, 10) || 1;
-                const deliverySelected = deliveryMethod ? deliveryMethod.options[deliveryMethod.selectedIndex].getAttribute('data-label') || 'Ambil Sendiri' : 'Ambil Sendiri';
-                const deliveryFee = deliveryMethod ? (parseInt(deliveryMethod.value, 10) || 0) : 0;
-                const paymentMethodVal = selectedPayment ? selectedPayment.value : 'Transfer Bank';
-                const totalCost = (qty * productPrice) + deliveryFee;
+                @guest
+                window.location.href = '{{ route('login') }}';
+                return;
+                @endguest
 
-                // Susun pesan WhatsApp yang rapi
-                const message =
-                    `Halo ${sellerDisplayName}, saya ingin memesan unit/produk dari Airunovin Marketplace:\n\n` +
-                    `*Data Pesanan:*\n` +
-                    `- Produk: ${productName}\n` +
-                    `- Jumlah: ${qty} unit\n` +
-                    `- Harga Satuan: Rp ${productPrice.toLocaleString('id-ID')}\n` +
-                    `- Pengiriman: ${deliverySelected} (${deliveryFee === 0 ? 'Gratis' : 'Rp ' + deliveryFee.toLocaleString('id-ID')})\n` +
-                    `- Pembayaran: ${paymentMethodVal}\n` +
-                    `- *Total Tagihan: Rp ${totalCost.toLocaleString('id-ID')}*\n\n` +
-                    `*Data Pembeli:*\n` +
-                    `- Nama: ${buyerNameInput.value.trim()}\n` +
-                    `- No. WhatsApp: ${buyerPhoneInput.value.trim()}\n\n` +
-                    `Tautan Produk: ${productUrl}\n\n` +
-                    `Mohon konfirmasi ketersediaan dan nomor rekening/instruksi pembayarannya. Terima kasih!`;
-
-                const waUrl = `https://wa.me/${sellerPhoneTarget}?text=${encodeURIComponent(message)}`;
-
-                const successAlert = document.getElementById('checkoutSuccessAlert');
-                if (successAlert) {
-                    successAlert.classList.remove('d-none');
+                if (confirmBtn) {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Memproses pesanan...';
                 }
 
-                setTimeout(function () {
-                    window.open(waUrl, '_blank');
-                }, 400);
+                const qty = parseInt(quantityInput.value, 10) || 1;
+                const deliverySelected = deliveryMethod ? deliveryMethod.options[deliveryMethod.selectedIndex].getAttribute('data-label') || 'Ambil di lokasi penjual (COD)' : 'Ambil di lokasi penjual (COD)';
+                const deliveryFee = deliveryMethod ? (parseInt(deliveryMethod.value, 10) || 0) : 0;
+                const paymentMethodVal = selectedPayment ? selectedPayment.value : 'Transfer Bank';
+
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    const response = await fetch('{{ route('product.buy', $product->id) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            quantity: qty,
+                            delivery_method: deliverySelected,
+                            delivery_cost: deliveryFee,
+                            payment_method: paymentMethodVal,
+                            buyer_name: buyerNameInput.value.trim(),
+                            buyer_phone: buyerPhoneInput.value.trim()
+                        })
+                    });
+
+                    const resData = await response.json();
+                    if (!response.ok) {
+                        throw new Error(resData.message || 'Gagal memproses pesanan.');
+                    }
+
+                    if (successAlert) {
+                        successAlert.innerHTML = '<i class="bi bi-check-circle me-1" aria-hidden="true"></i> Pesanan berhasil dibuat! Mengalihkan ke Dashboard...';
+                        successAlert.classList.remove('d-none');
+                    }
+
+                    setTimeout(function () {
+                        window.location.href = '{{ route('dashboard') }}';
+                    }, 1000);
+                } catch (err) {
+                    console.error('Error processing purchase:', err);
+                    if (errorAlert) {
+                        errorAlert.innerHTML = '<i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i> ' + (err.message || 'Terjadi kesalahan saat memproses pesanan.');
+                        errorAlert.classList.remove('d-none');
+                    } else {
+                        alert(err.message || 'Terjadi kesalahan saat memproses pesanan.');
+                    }
+                    if (confirmBtn) {
+                        confirmBtn.disabled = false;
+                        confirmBtn.innerHTML = '<i class="bi bi-bag-check me-1" aria-hidden="true"></i> Pesan';
+                    }
+                }
             });
         }
     });
