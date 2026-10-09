@@ -124,6 +124,18 @@
                </div>
 
                <div class="col-12">
+                  <label for="alamat" class="form-label">Alamat</label>
+                  <textarea class="form-control @error('alamat') is-invalid @enderror" 
+                            id="alamat" 
+                            name="alamat" 
+                            rows="2" 
+                            placeholder="Masukkan alamat lengkap">{{ old('alamat', $user->alamat) }}</textarea>
+                  @error('alamat')
+                      <div class="invalid-feedback">{{ $message }}</div>
+                  @enderror
+               </div>
+
+               <div class="col-12">
                   <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
                </div>
             </form>

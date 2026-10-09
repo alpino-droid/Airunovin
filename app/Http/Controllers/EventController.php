@@ -6,6 +6,7 @@ use App\Models\event;
 use App\Models\Club;
 use App\Models\product;
 use App\Models\Provinsi;
+use App\Models\Marketplace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -18,8 +19,9 @@ class EventController extends Controller
         $events = event::where('status', 'diterima')->orderBy('tanggal', 'desc')->take(6)->get();
         $clubs = Club::where('status', 'diterima')->latest()->take(6)->get();
         $products = Product::where('status', 'diterima')->orderBy('merk', 'desc')->take(6)->get();   
+        $marketplaces = Marketplace::where('status', 'diterima')->with('user')->withCount('products')->latest()->take(6)->get();
 
-        return view('pages.home', compact('eventsTerbaru', 'events', 'clubs', 'products'));
+        return view('pages.home', compact('eventsTerbaru', 'events', 'clubs', 'products', 'marketplaces'));
     }
 
     public function event(Request $request)

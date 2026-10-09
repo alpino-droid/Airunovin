@@ -24,6 +24,7 @@ class User extends Authenticatable
         'id_provinsi',
         'province',
         'city',
+        'alamat',
         // 'role' → TIDAK ADA, karena tidak ada di database
     ];
 

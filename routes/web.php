@@ -34,6 +34,8 @@ Route::get('/admin/marketplace', [App\Http\Controllers\AdminController::class, '
 Route::get('/admin/product', [App\Http\Controllers\AdminController::class, 'product'])->name('admin.product');
 Route::get('/admin/registrasi', [App\Http\Controllers\AdminController::class, 'registrasi'])->name('admin.registrasi');
 Route::get('/admin/settings', [App\Http\Controllers\AdminController::class, 'settings'])->name('admin.settings');
+Route::get('/admin/search', [App\Http\Controllers\AdminController::class, 'adminSearch'])->name('admin.search');
+Route::get('/admin/search/suggest', [App\Http\Controllers\AdminController::class, 'searchSuggest'])->name('admin.search.suggest');
 
 // Admin Event CRUD & Status
 Route::post('/admin/event', [App\Http\Controllers\AdminController::class, 'eventStore'])->name('admin.event.store');

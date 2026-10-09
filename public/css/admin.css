@@ -241,7 +241,7 @@ body {
 .bar-chart {
     display: flex;
     align-items: flex-end;
-    gap: 12px;
+    gap: clamp(4px, 1.2vw, 12px);
     min-height: 220px;
     padding-top: 0.5rem;
 }
@@ -252,20 +252,56 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.bar-col:hover {
+    transform: translateY(-2px);
+}
+
+.bar-col:hover .bar:not(.bar-empty) {
+    filter: brightness(1.1);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .bar {
     width: 100%;
-    max-width: 36px;
-    border-radius: 10px 10px 0 0;
+    max-width: 32px;
+    border-radius: 8px 8px 0 0;
     background: linear-gradient(180deg, #93c5fd 0%, #2563eb 100%);
-    min-height: 24px;
+    min-height: 8px;
+    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+}
+
+.bar.bar-empty {
+    background: #e2e8f0 !important;
+    min-height: 6px !important;
+    height: 6px !important;
+    border-radius: 3px !important;
+    opacity: 0.7;
+}
+
+.bar.bar-current {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.35);
+}
+
+.bar-val {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    min-height: 16px;
+    line-height: 16px;
+    text-align: center;
 }
 
 .bar-label {
     font-size: 0.72rem;
     color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
 }
 
 .pill {

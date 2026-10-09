@@ -147,7 +147,25 @@ class HalamanController extends Controller
         $cities = Product::query()->where('status', 'diterima')->whereNotNull('lokasi')->distinct()->orderBy('lokasi')->pluck('lokasi');
         $brands = Product::query()->where('status', 'diterima')->whereNotNull('merk')->where('merk', '!=', '')->distinct()->orderBy('merk')->pluck('merk');
 
-        return view('pages.marketplace', compact('products', 'provinsi', 'cities', 'brands'));
+        $matchingMarketplaces = collect();
+        if ($request->filled('q') || $request->filled('search')) {
+            $keyword = trim((string) ($request->input('q') ?? $request->input('search')));
+            $matchingMarketplaces = Marketplace::where('status', 'diterima')
+                ->where(function ($mq) use ($keyword) {
+                    $mq->where('nama', 'like', "%{$keyword}%")
+                       ->orWhere('deskripsi', 'like', "%{$keyword}%")
+                       ->orWhereHas('user', function ($uq) use ($keyword) {
+                           $uq->where('nama', 'like', "%{$keyword}%")
+                              ->orWhere('city', 'like', "%{$keyword}%");
+                       });
+                })
+                ->with('user')
+                ->withCount('products')
+                ->take(4)
+                ->get();
+        }
+
+        return view('pages.marketplace', compact('products', 'provinsi', 'cities', 'brands', 'matchingMarketplaces'));
     }
 
     public function DM()

@@ -119,6 +119,97 @@
             </div>
         </div>
 
+        {{-- Card Horizontal Marketplace Hasil Pencarian --}}
+        @php
+            if (!isset($matchingMarketplaces)) {
+                $searchKeyword = trim((string) (request('q') ?? request('search')));
+                $matchingMarketplaces = $searchKeyword !== ''
+                    ? \App\Models\Marketplace::where('status', 'diterima')
+                        ->where(function ($mq) use ($searchKeyword) {
+                            $mq->where('nama', 'like', "%{$searchKeyword}%")
+                               ->orWhere('deskripsi', 'like', "%{$searchKeyword}%")
+                               ->orWhereHas('user', function ($uq) use ($searchKeyword) {
+                                   $uq->where('nama', 'like', "%{$searchKeyword}%")
+                                      ->orWhere('city', 'like', "%{$searchKeyword}%");
+                               });
+                        })
+                        ->with('user')
+                        ->withCount('products')
+                        ->take(4)
+                        ->get()
+                    : collect();
+            }
+        @endphp
+
+        @if($matchingMarketplaces->isNotEmpty())
+            <div class="mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-shop me-2 text-primary"></i>{{ __('Marketplace / Toko Ditemukan') }}
+                        <span class="badge bg-primary rounded-pill fs-6 ms-2 align-middle">{{ $matchingMarketplaces->count() }}</span>
+                    </h5>
+                </div>
+                <div class="d-flex flex-column gap-3">
+                    @foreach($matchingMarketplaces as $mStore)
+                        <div class="card border shadow-sm rounded-3 overflow-hidden bg-white">
+                            <div class="row g-0 align-items-center">
+                                {{-- Kolom Logo --}}
+                                <div class="col-auto p-3 text-center d-flex align-items-center justify-content-center bg-light" style="width: 130px; min-height: 130px;">
+                                    <img src="{{ $mStore->logo_url }}" 
+                                         alt="{{ $mStore->nama }}" 
+                                         class="img-fluid rounded-3 border bg-white shadow-xs" 
+                                         style="width: 90px; height: 90px; object-fit: cover;"
+                                         onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
+                                </div>
+                                {{-- Kolom Konten --}}
+                                <div class="col">
+                                    <div class="card-body py-3 px-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                        <div class="flex-grow-1" style="min-width: 250px;">
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                <h5 class="card-title fw-bold mb-0 text-dark" title="{{ $mStore->nama }}">
+                                                    {{ $mStore->nama }}
+                                                </h5>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
+                                                    <i class="bi bi-patch-check-fill me-1"></i>Official Store
+                                                </span>
+                                            </div>
+                                            @if($mStore->deskripsi)
+                                                <p class="card-text text-muted small mb-2" style="max-width: 700px;">
+                                                    {{ Str::limit($mStore->deskripsi, 140) }}
+                                                </p>
+                                            @endif
+                                            <div class="d-flex flex-wrap align-items-center gap-3 small text-muted">
+                                                @if($mStore->user && $mStore->user->city)
+                                                    <span>
+                                                        <i class="bi bi-geo-alt text-danger me-1"></i>{{ $mStore->user->city }}
+                                                    </span>
+                                                @endif
+                                                <span>
+                                                    <i class="bi bi-box-seam text-primary me-1"></i><strong>{{ $mStore->products_count ?? $mStore->products()->count() }}</strong> {{ __('Produk') }}
+                                                </span>
+                                                @if($mStore->user && $mStore->user->nama)
+                                                    <span>
+                                                        <i class="bi bi-person text-secondary me-1"></i>{{ $mStore->user->nama }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <a href="{{ route('market', $mStore->id) }}" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold d-inline-flex align-items-center gap-2">
+                                                <i class="bi bi-shop"></i>
+                                                <span>{{ __('Kunjungi Toko') }}</span>
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="fw-bold mb-0 marketplace-section-title">{{ __('Latest Products') }}</h5>
             @if(request()->hasAny(['unit', 'sparepart', 'aksesoris', 'merk', 'province', 'city', 'jenis']))

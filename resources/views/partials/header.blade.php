@@ -15,7 +15,7 @@
             <ul class="nav align-items-center ms-auto">
             {{-- Input Pencarian dengan Ikon SVG & Mesin Pencari Pintar --}}
             <li class="nav-item position-relative me-2 app-navbar-search">
-                <form action="{{ route('global.search') }}" method="GET" class="m-0 p-0 position-relative" id="globalSearchForm">
+                <form action="{{ route('global.search') }}" method="GET" class="m-0 p-0 position-relative" id="globalSearchForm" role="search">
                     <input 
                         class="form-control form-control-sm" 
                         type="search" 
@@ -24,16 +24,24 @@
                         placeholder="{{ __('Cari event, club, produk...') }}" 
                         aria-label="{{ __('Search') }}"
                         value="{{ request('search') ?? request('q') }}"
-                        style="padding-left: 35px; width: 230px;"
+                        style="padding-left: 35px; padding-right: 32px; width: 230px;"
                         autocomplete="off"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-expanded="false"
+                        aria-controls="globalSearchDropdown"
                     >
                     <button type="submit" class="btn p-0 border-0 bg-transparent" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; line-height: 1; z-index: 5;" aria-label="Submit Search">
                         <img src="{{ asset('icon/material-symbols-light--search.svg') }}" 
                              alt="Search" 
                              style="width: 18px; height: 18px; opacity: 0.6;">
                     </button>
+                    {{-- AJAX Loading Spinner --}}
+                    <div id="globalSearchSpinner" class="spinner-border spinner-border-sm text-secondary d-none position-absolute" style="right: 10px; top: calc(50% - 7px); width: 14px; height: 14px; border-width: 2px; z-index: 5;" role="status" aria-hidden="true">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                     {{-- Live Autocomplete Dropdown Preview --}}
-                    <div id="globalSearchDropdown" class="dropdown-menu shadow-lg p-2 d-none position-absolute" style="width: 320px; right: 0; left: auto; top: calc(100% + 6px); max-height: 400px; overflow-y: auto; z-index: 1060; border-radius: 12px;">
+                    <div id="globalSearchDropdown" class="dropdown-menu shadow-lg p-2 d-none position-absolute" style="width: 320px; max-width: calc(100vw - 2rem); right: 0; left: auto; top: calc(100% + 6px); max-height: 420px; overflow-y: auto; z-index: 1060; border-radius: 12px;" role="listbox">
                         <div id="globalSearchDropdownContent"></div>
                     </div>
                 </form>
@@ -258,105 +266,276 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchDropdown = document.getElementById('globalSearchDropdown');
     const searchContent = document.getElementById('globalSearchDropdownContent');
     const searchForm = document.getElementById('globalSearchForm');
+    const searchSpinner = document.getElementById('globalSearchSpinner');
 
     if (!searchInput || !searchDropdown || !searchContent) return;
 
     let debounceTimer = null;
+    let abortController = null;
+    let activeIndex = -1;
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function highlightMatch(text, query) {
+        if (!text || !query) return escapeHtml(text);
+        const safeText = escapeHtml(text);
+        const safeQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (!safeQuery) return safeText;
+        const regex = new RegExp(`(${safeQuery})`, 'gi');
+        return safeText.replace(regex, '<mark class="p-0 bg-warning-subtle text-dark fw-bold">$1</mark>');
+    }
+
+    function showDropdown() {
+        searchDropdown.classList.remove('d-none');
+        searchDropdown.classList.add('show');
+        searchDropdown.style.display = 'block';
+        searchInput.setAttribute('aria-expanded', 'true');
+    }
+
+    function hideDropdown() {
+        searchDropdown.classList.add('d-none');
+        searchDropdown.classList.remove('show');
+        searchDropdown.style.display = 'none';
+        searchInput.setAttribute('aria-expanded', 'false');
+        activeIndex = -1;
+        updateActiveItem();
+    }
+
+    function setSpinner(show) {
+        if (!searchSpinner) return;
+        if (show) {
+            searchSpinner.classList.remove('d-none');
+        } else {
+            searchSpinner.classList.add('d-none');
+        }
+    }
+
+    function getItems() {
+        return searchContent.querySelectorAll('.search-suggest-item');
+    }
+
+    function updateActiveItem() {
+        const items = getItems();
+        items.forEach((item, idx) => {
+            if (idx === activeIndex) {
+                item.classList.add('active', 'bg-light');
+                item.setAttribute('aria-selected', 'true');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('active', 'bg-light');
+                item.removeAttribute('aria-selected');
+            }
+        });
+    }
+
+    function performSearch(query) {
+        if (abortController) {
+            abortController.abort();
+        }
+        abortController = new AbortController();
+
+        setSpinner(true);
+
+        const url = `{{ route('search.suggest') }}?q=${encodeURIComponent(query)}`;
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            signal: abortController.signal
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.json();
+        })
+        .then(data => {
+            setSpinner(false);
+            activeIndex = -1;
+
+            const events = Array.isArray(data.events) ? data.events : [];
+            const clubs = Array.isArray(data.clubs) ? data.clubs : [];
+            const products = Array.isArray(data.products) ? data.products : [];
+
+            const total = events.length + clubs.length + products.length;
+
+            if (total === 0) {
+                searchContent.innerHTML = `
+                    <div class="p-3 text-center text-muted small">
+                        <i class="bi bi-search d-block mb-1 fs-5 text-secondary"></i>
+                        <div>{{ __('Tidak ada saran untuk') }} "<strong>${escapeHtml(query)}</strong>"</div>
+                        <div class="mt-2 text-secondary" style="font-size: 0.75rem;">
+                            Tekan <kbd class="bg-light text-dark border px-1">Enter</kbd> {{ __('untuk mencari di semua data') }}
+                        </div>
+                    </div>
+                `;
+                showDropdown();
+                return;
+            }
+
+            let html = '';
+
+            // Section Event
+            if (events.length > 0) {
+                html += `
+                    <div class="d-flex align-items-center justify-content-between px-2 pt-1 pb-1 text-uppercase text-secondary fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <span><i class="bi bi-calendar-event me-1 text-primary"></i> Event</span>
+                        <span class="badge bg-primary-subtle text-primary rounded-pill">${events.length}</span>
+                    </div>
+                `;
+                events.forEach(e => {
+                    html += `
+                        <a href="${escapeHtml(e.url)}" class="search-suggest-item dropdown-item d-flex align-items-center gap-2 py-2 px-2 rounded mb-1 text-decoration-none" role="option">
+                            <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                <i class="bi ${escapeHtml(e.icon || 'bi-calendar-event')}"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-semibold text-dark text-truncate small">${highlightMatch(e.title, query)}</div>
+                                <div class="text-muted text-truncate" style="font-size: 0.75rem;">${escapeHtml(e.sub || '')}</div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+
+            // Section Club
+            if (clubs.length > 0) {
+                html += `
+                    <div class="d-flex align-items-center justify-content-between px-2 pt-2 pb-1 text-uppercase text-secondary fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <span><i class="bi bi-shield-shaded me-1 text-success"></i> Club</span>
+                        <span class="badge bg-success-subtle text-success rounded-pill">${clubs.length}</span>
+                    </div>
+                `;
+                clubs.forEach(c => {
+                    html += `
+                        <a href="${escapeHtml(c.url)}" class="search-suggest-item dropdown-item d-flex align-items-center gap-2 py-2 px-2 rounded mb-1 text-decoration-none" role="option">
+                            <div class="rounded-circle bg-success-subtle text-success d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                <i class="bi ${escapeHtml(c.icon || 'bi-shield-shaded')}"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-semibold text-dark text-truncate small">${highlightMatch(c.title, query)}</div>
+                                <div class="text-muted text-truncate" style="font-size: 0.75rem;">${escapeHtml(c.sub || '')}</div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+
+            // Section Produk / Marketplace
+            if (products.length > 0) {
+                html += `
+                    <div class="d-flex align-items-center justify-content-between px-2 pt-2 pb-1 text-uppercase text-secondary fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                        <span><i class="bi bi-shop me-1 text-warning"></i> Marketplace</span>
+                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">${products.length}</span>
+                    </div>
+                `;
+                products.forEach(p => {
+                    html += `
+                        <a href="${escapeHtml(p.url)}" class="search-suggest-item dropdown-item d-flex align-items-center gap-2 py-2 px-2 rounded mb-1 text-decoration-none" role="option">
+                            <div class="rounded-circle bg-warning-subtle text-warning-emphasis d-flex align-items-center justify-content-center flex-shrink-0" style="width: 32px; height: 32px;">
+                                <i class="bi ${escapeHtml(p.icon || 'bi-box-seam')}"></i>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="fw-semibold text-dark text-truncate small">${highlightMatch(p.title, query)}</div>
+                                <div class="text-muted text-truncate" style="font-size: 0.75rem;">${escapeHtml(p.sub || '')}</div>
+                            </div>
+                        </a>
+                    `;
+                });
+            }
+
+            // Tombol cari semua di bagian bawah
+            html += `
+                <hr class="dropdown-divider my-1">
+                <button type="button" class="search-submit-btn dropdown-item text-center text-primary fw-semibold py-2 small rounded d-flex align-items-center justify-content-center gap-1">
+                    <i class="bi bi-arrow-return-right"></i>
+                    <span>{{ __('Lihat semua hasil untuk') }} "<em>${escapeHtml(query)}</em>"</span>
+                </button>
+            `;
+
+            searchContent.innerHTML = html;
+
+            const submitBtn = searchContent.querySelector('.search-submit-btn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function () {
+                    searchForm.submit();
+                });
+            }
+
+            showDropdown();
+        })
+        .catch(err => {
+            if (err.name === 'AbortError') return;
+            setSpinner(false);
+            console.error('AJAX search error:', err);
+        });
+    }
 
     searchInput.addEventListener('input', function () {
         const query = this.value.trim();
         clearTimeout(debounceTimer);
 
         if (query.length < 2) {
-            searchDropdown.classList.add('d-none');
+            if (abortController) abortController.abort();
+            setSpinner(false);
+            hideDropdown();
             searchContent.innerHTML = '';
             return;
         }
 
         debounceTimer = setTimeout(() => {
-            fetch(`{{ route('search.suggest') }}?q=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    let html = '';
-                    const hasEvents = data.events && data.events.length > 0;
-                    const hasClubs = data.clubs && data.clubs.length > 0;
-                    const hasProducts = data.products && data.products.length > 0;
+            performSearch(query);
+        }, 250);
+    });
 
-                    if (!hasEvents && !hasClubs && !hasProducts) {
-                        html = `
-                            <div class="p-2 text-center text-muted small">
-                                <i class="bi bi-search me-1"></i> Tekan <strong>Enter</strong> untuk mencari "<em>${query}</em>"
-                            </div>
-                        `;
-                    } else {
-                        if (hasEvents) {
-                            html += `<div class="dropdown-header text-uppercase text-primary fw-bold px-2 py-1 small"><i class="bi bi-calendar-event me-1"></i> Event</div>`;
-                            data.events.forEach(e => {
-                                html += `
-                                    <a href="${e.url}" class="dropdown-item d-flex align-items-center py-2 px-2 rounded">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <div class="fw-semibold text-dark text-truncate small">${e.title}</div>
-                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">${e.sub}</div>
-                                        </div>
-                                    </a>
-                                `;
-                            });
-                        }
+    searchInput.addEventListener('keydown', function (e) {
+        const items = getItems();
+        const isOpen = !searchDropdown.classList.contains('d-none');
 
-                        if (hasClubs) {
-                            html += `<div class="dropdown-header text-uppercase text-primary fw-bold px-2 py-1 small mt-2"><i class="bi bi-shield-shaded me-1"></i> Club</div>`;
-                            data.clubs.forEach(c => {
-                                html += `
-                                    <a href="${c.url}" class="dropdown-item d-flex align-items-center py-2 px-2 rounded">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <div class="fw-semibold text-dark text-truncate small">${c.title}</div>
-                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">${c.sub}</div>
-                                        </div>
-                                    </a>
-                                `;
-                            });
-                        }
-
-                        if (hasProducts) {
-                            html += `<div class="dropdown-header text-uppercase text-primary fw-bold px-2 py-1 small mt-2"><i class="bi bi-shop me-1"></i> Produk / Market</div>`;
-                            data.products.forEach(p => {
-                                html += `
-                                    <a href="${p.url}" class="dropdown-item d-flex align-items-center py-2 px-2 rounded">
-                                        <div class="flex-grow-1 overflow-hidden">
-                                            <div class="fw-semibold text-dark text-truncate small">${p.title}</div>
-                                            <div class="text-muted small text-truncate" style="font-size: 0.75rem;">${p.sub}</div>
-                                        </div>
-                                    </a>
-                                `;
-                            });
-                        }
-
-                        html += `
-                            <hr class="dropdown-divider my-1">
-                            <button type="submit" class="dropdown-item text-center text-primary fw-semibold py-2 small rounded">
-                                <i class="bi bi-arrow-return-right me-1"></i> Tekan Enter untuk cari semua
-                            </button>
-                        `;
-                    }
-
-                    searchContent.innerHTML = html;
-                    searchDropdown.classList.remove('d-none');
-                })
-                .catch(() => {
-                    searchDropdown.classList.add('d-none');
-                });
-        }, 200);
+        if (e.key === 'ArrowDown') {
+            if (!isOpen && searchContent.innerHTML.trim() !== '') {
+                showDropdown();
+                return;
+            }
+            if (items.length > 0) {
+                e.preventDefault();
+                activeIndex = (activeIndex + 1) % items.length;
+                updateActiveItem();
+            }
+        } else if (e.key === 'ArrowUp') {
+            if (items.length > 0 && isOpen) {
+                e.preventDefault();
+                activeIndex = (activeIndex - 1 + items.length) % items.length;
+                updateActiveItem();
+            }
+        } else if (e.key === 'Enter') {
+            if (isOpen && activeIndex >= 0 && items[activeIndex]) {
+                e.preventDefault();
+                items[activeIndex].click();
+            }
+        } else if (e.key === 'Escape') {
+            if (isOpen) {
+                e.preventDefault();
+                hideDropdown();
+            }
+        }
     });
 
     document.addEventListener('click', function (e) {
         if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
-            searchDropdown.classList.add('d-none');
+            hideDropdown();
         }
     });
 
     searchInput.addEventListener('focus', function () {
         if (searchContent.innerHTML.trim() !== '' && this.value.trim().length >= 2) {
-            searchDropdown.classList.remove('d-none');
+            showDropdown();
         }
     });
 });

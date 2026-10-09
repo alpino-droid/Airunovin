@@ -431,6 +431,12 @@
                             <div class="invalid-feedback">Silakan masukkan nomor telepon yang aktif.</div>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="buyerAddress" class="form-label fw-semibold small">Alamat Pembeli / Pengiriman <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="buyerAddress" rows="2" placeholder="Masukkan alamat lengkap pengiriman (Jalan, No. Rumah, RT/RW, Kecamatan, Kota/Kabupaten)" required>{{ Auth::check() ? (Auth::user()->alamat ?: '') : '' }}</textarea>
+                            <div class="invalid-feedback">Silakan masukkan alamat lengkap pengiriman Anda.</div>
+                        </div>
+
                         {{-- Jumlah Pesanan dengan Stepper --}}
                         <div class="mb-3">
                             <label for="productQuantity" class="form-label fw-semibold small">Jumlah Unit</label>
@@ -646,6 +652,7 @@
 
                 const buyerNameInput = document.getElementById('buyerName');
                 const buyerPhoneInput = document.getElementById('buyerPhone');
+                const buyerAddressInput = document.getElementById('buyerAddress');
                 const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked');
                 const confirmBtn = document.getElementById('confirmPurchase');
                 const successAlert = document.getElementById('checkoutSuccessAlert');
@@ -671,6 +678,15 @@
                     isValid = false;
                 } else {
                     buyerPhoneInput.classList.remove('is-invalid');
+                }
+
+                if (buyerAddressInput) {
+                    if (!buyerAddressInput.value.trim()) {
+                        buyerAddressInput.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        buyerAddressInput.classList.remove('is-invalid');
+                    }
                 }
 
                 if (!isValid) return;
@@ -705,7 +721,8 @@
                             delivery_cost: deliveryFee,
                             payment_method: paymentMethodVal,
                             buyer_name: buyerNameInput.value.trim(),
-                            buyer_phone: buyerPhoneInput.value.trim()
+                            buyer_phone: buyerPhoneInput.value.trim(),
+                            buyer_address: buyerAddressInput ? buyerAddressInput.value.trim() : ''
                         })
                     });
 

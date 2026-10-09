@@ -37,4 +37,15 @@ class Marketplace extends Model
     {
         return $this->hasMany(Product::class, 'id_marketplace');
     }
+
+    public function getLogoUrlAttribute(): string
+    {
+        if ($this->logo) {
+            if (str_starts_with($this->logo, 'http')) {
+                return $this->logo;
+            }
+            return asset('storage/' . $this->logo);
+        }
+        return asset('img/balnkLogo.png');
+    }
 }

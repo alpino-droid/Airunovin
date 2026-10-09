@@ -158,6 +158,7 @@ class ProductController extends Controller
             'payment_method' => 'nullable|string|max:100',
             'buyer_name' => 'required|string|max:255',
             'buyer_phone' => 'required|string|max:30',
+            'buyer_address' => 'nullable|string|max:1000',
         ]);
 
         $qty = (int) $validated['quantity'];

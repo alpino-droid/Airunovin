@@ -118,6 +118,12 @@
                            <input type="tel" class="form-control" id="phone" value="{{ Auth::user()->phone ?? '-' }}" readonly>
                            <div class="form-text">Diambil dari profil akun.</div>
                         </div>
+                        <div class="col-md-8">
+                           <label class="form-label fw-semibold" for="alamat">Alamat Toko / Penjual</label>
+                           <textarea class="form-control @error('alamat') is-invalid @enderror" id="alamat" name="alamat" rows="2" placeholder="Masukkan alamat lengkap toko atau penjual">{{ old('alamat', Auth::user()->alamat ?? '') }}</textarea>
+                           @error('alamat')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                           <div class="form-text">Alamat operasional toko (tersimpan ke profil pengguna).</div>
+                        </div>
                      <div class="d-flex justify-content-end mt-4">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1" aria-hidden="true"></i>{{ $marketplace ? 'Simpan Perubahan' : 'Buat Marketplace' }}</button>
                      </div>
@@ -303,6 +309,11 @@
                                           </a>
                                        @else
                                           <span class="text-muted d-block">{{ $order->no_wa_pembeli }}</span>
+                                       @endif
+                                       @if($order->user?->alamat)
+                                          <div class="text-muted mt-1" style="font-size: 0.8rem;" title="Alamat Pengiriman Pembeli">
+                                             <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ $order->user->alamat }}
+                                          </div>
                                        @endif
                                     </div>
                                     <div class="col-6 col-md-2">

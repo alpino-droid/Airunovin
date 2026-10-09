@@ -35,9 +35,15 @@
                         <img src="{{ asset('storage/' . $poster) }}" alt="Poster event">
                      </div>
                      <div class="card-body">
-                        <button type="button" class="btn btn-outline-primary btn-upload" data-id="{{ $index + 1 }}">Ganti File</button>
+                        <div class="d-flex gap-2">
+                           <button type="button" class="btn btn-outline-primary flex-grow-1 btn-upload d-inline-flex align-items-center justify-content-center" data-id="{{ $index + 1 }}">
+                              <i class="bi bi-upload me-1"></i> <span class="upload-btn-text">Ganti File</span>
+                           </button>
+                           <button type="button" class="btn btn-outline-danger btn-remove d-inline-flex align-items-center justify-content-center" data-id="{{ $index + 1 }}">
+                              <i class="bi bi-trash me-1"></i> Hapus
+                           </button>
+                        </div>
                         <input type="file" id="fileInputButton{{ $index + 1 }}" name="poster[]" class="d-none poster-input" accept="image/*">
-                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 btn-remove" data-id="{{ $index + 1 }}">Hapus</button>
                      </div>
                   </div>
                </div>
@@ -48,9 +54,15 @@
                         <img src="{{ asset('img/balnkLogo.png') }}" alt="Gambar 1">
                      </div>
                      <div class="card-body">
-                        <button type="button" class="btn btn-outline-primary btn-upload" data-id="1">Upload File</button>
+                        <div class="d-flex gap-2">
+                           <button type="button" class="btn btn-outline-primary flex-grow-1 btn-upload d-inline-flex align-items-center justify-content-center" data-id="1">
+                              <i class="bi bi-upload me-1"></i> <span class="upload-btn-text">Upload File</span>
+                           </button>
+                           <button type="button" class="btn btn-outline-danger btn-remove d-inline-flex align-items-center justify-content-center" data-id="1">
+                              <i class="bi bi-trash me-1"></i> Hapus
+                           </button>
+                        </div>
                         <input type="file" id="fileInputButton1" name="poster[]" class="d-none poster-input" accept="image/*">
-                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 btn-remove" data-id="1">Hapus</button>
                      </div>
                   </div>
                </div>
@@ -81,28 +93,31 @@
             </div>
 
             <div class="col-md-6">
-               <label for="lokasi" class="form-label">Lokasi</label>
-               <input type="text" class="form-control" id="lokasi" name="lokasi" value="{{ old('lokasi', $event->lokasi ?? '') }}" placeholder="Masukkan lokasi event">
+               <label for="sumber" class="form-label">Sumber Informasi</label>
+               <input type="text" class="form-control" id="sumber" name="sumber" value="{{ old('sumber', $event->sumber ?? '') }}" placeholder="Sumber informasi event">
             </div>
 
             <div class="col-md-6" style="overflow: visible;">
-               <label for="id_provinsi" class="form-label">Provinsi</label>
-               <select id="id_provinsi" class="form-select" name="id_provinsi" required style="position: relative; z-index: 1050;">
-                  <option value="">Pilih Provinsi...</option>
-                  @foreach($provinsi as $prov)
-                     <option value="{{ $prov->id }}" @selected(old('id_provinsi', $event->id_provinsi ?? '') == $prov->id)>{{ $prov->provinsi }}</option>
-                  @endforeach
-               </select>
+               <div class="row g-2">
+                  <div class="col-6" style="overflow: visible;">
+                     <label for="id_provinsi" class="form-label">Provinsi</label>
+                     <select id="id_provinsi" class="form-select" name="id_provinsi" required style="position: relative; z-index: 1050;">
+                        <option value="">Pilih Provinsi...</option>
+                        @foreach($provinsi as $prov)
+                           <option value="{{ $prov->id }}" @selected(old('id_provinsi', $event->id_provinsi ?? '') == $prov->id)>{{ $prov->provinsi }}</option>
+                        @endforeach
+                     </select>
+                  </div>
+                  <div class="col-6">
+                     <label for="kota" class="form-label">Kota</label>
+                     <input type="text" id="kota" class="form-control" name="kota" value="{{ old('kota', $event->kota ?? '') }}" placeholder="Masukkan kota event" required>
+                  </div>
+               </div>
             </div>
 
             <div class="col-md-6">
-               <label for="kota" class="form-label">Kota</label>
-               <input type="text" id="kota" class="form-control" name="kota" value="{{ old('kota', $event->kota ?? '') }}" placeholder="Masukkan kota event" required>
-            </div>
-
-            <div class="col-md-6">
-               <label for="sumber" class="form-label">Sumber Informasi</label>
-               <input type="text" class="form-control" id="sumber" name="sumber" value="{{ old('sumber', $event->sumber ?? '') }}" placeholder="Sumber informasi event">
+               <label for="lokasi" class="form-label">Lokasi</label>
+               <input type="text" class="form-control" id="lokasi" name="lokasi" value="{{ old('lokasi', $event->lokasi ?? '') }}" placeholder="Masukkan lokasi event">
             </div>
 
             <div class="col-md-6">
@@ -166,6 +181,8 @@
             if (input) input.value = '';
             const img = card.querySelector('img');
             if (img) img.src = '{{ asset('img/balnkLogo.png') }}';
+            const uploadBtnText = card.querySelector('.upload-btn-text');
+            if (uploadBtnText) uploadBtnText.textContent = 'Upload File';
          } else {
             card.remove();
          }
@@ -188,9 +205,19 @@
       const removeButton = event.target.closest('.btn-remove');
       if (removeButton) {
          const card = removeButton.closest('.card-item');
-         if (card && getCardItems().length > 1) {
-            card.remove();
-            refreshAddButton();
+         if (card) {
+            if (getCardItems().length > 1) {
+               card.remove();
+               refreshAddButton();
+            } else {
+               // Jika hanya ada 1 card tersisa, reset isi poster agar fungsi hapus tetap konsisten
+               const input = card.querySelector('.poster-input');
+               if (input) input.value = '';
+               const img = card.querySelector('img');
+               if (img) img.src = '{{ asset('img/balnkLogo.png') }}';
+               const uploadBtnText = card.querySelector('.upload-btn-text');
+               if (uploadBtnText) uploadBtnText.textContent = 'Upload File';
+            }
          }
          return;
       }
@@ -205,6 +232,8 @@
          const card = input.closest('.card-item');
          const img = card ? card.querySelector('img') : null;
          if (img) img.src = e.target.result;
+         const uploadBtnText = card ? card.querySelector('.upload-btn-text') : null;
+         if (uploadBtnText) uploadBtnText.textContent = 'Ganti File';
       };
       reader.readAsDataURL(input.files[0]);
    });
@@ -229,7 +258,12 @@
          const uploadBtn = clone.querySelector('.btn-upload');
          if (uploadBtn) {
             uploadBtn.dataset.id = newId;
-            uploadBtn.textContent = 'Upload File';
+            const uploadBtnText = uploadBtn.querySelector('.upload-btn-text');
+            if (uploadBtnText) {
+               uploadBtnText.textContent = 'Upload File';
+            } else {
+               uploadBtn.innerHTML = '<i class="bi bi-upload me-1"></i> <span class="upload-btn-text">Upload File</span>';
+            }
          }
 
          const removeBtn = clone.querySelector('.btn-remove');

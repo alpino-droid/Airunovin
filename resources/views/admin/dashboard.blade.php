@@ -108,18 +108,91 @@
 <div class="row g-4 mb-4">
     <div class="col-xl-8">
         <div class="panel h-100">
-            <div class="panel-header d-flex justify-content-between align-items-center">
-                <h2 class="panel-title">{{ __('Activity trend') }}</h2>
-                <span class="text-muted small">Juni 2026</span>
+            <div class="panel-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <h2 class="panel-title mb-0">{{ __('Tren Aktivitas') }}</h2>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small" id="trendYearBadge">
+                        Tahun {{ $selectedYear }} &bull; {{ $yearTotalActivity }} Aktivitas
+                    </span>
+                </div>
+
+                {{-- Year Switcher (Dropdown & Navigation) --}}
+                <div class="d-flex align-items-center gap-1">
+                    <form action="{{ route('admin.dashboard') }}" method="GET" class="d-flex align-items-center gap-1 m-0" id="yearFilterForm">
+                        @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+                        @if(request('q'))
+                            <input type="hidden" name="q" value="{{ request('q') }}">
+                        @endif
+                        
+                        <a href="{{ route('admin.dashboard', array_merge(request()->query(), ['year' => $selectedYear - 1])) }}" 
+                           class="btn btn-sm btn-outline-secondary px-2 py-1 btn-year-nav" 
+                           data-year="{{ $selectedYear - 1 }}"
+                           title="Tahun Sebelumnya ({{ $selectedYear - 1 }})">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+
+                        <select name="year" id="dashboardYearSelect" class="form-select form-select-sm fw-bold border-secondary-subtle" style="width: auto; min-width: 95px; cursor: pointer;">
+                            @foreach($availableYears as $yr)
+                                <option value="{{ $yr }}" {{ (int)$yr === (int)$selectedYear ? 'selected' : '' }}>
+                                    {{ $yr }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <a href="{{ route('admin.dashboard', array_merge(request()->query(), ['year' => $selectedYear + 1])) }}" 
+                           class="btn btn-sm btn-outline-secondary px-2 py-1 btn-year-nav" 
+                           data-year="{{ $selectedYear + 1 }}"
+                           title="Tahun Berikutnya ({{ $selectedYear + 1 }})">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </form>
+                </div>
             </div>
-            <div class="panel-body">
-                <div class="bar-chart">
-                    <div class="bar-col"><div class="bar" style="height: 35%;"></div><div class="bar-label">Jan</div></div>
-                    <div class="bar-col"><div class="bar" style="height: 52%;"></div><div class="bar-label">Feb</div></div>
-                    <div class="bar-col"><div class="bar" style="height: 46%;"></div><div class="bar-label">Mar</div></div>
-                    <div class="bar-col"><div class="bar" style="height: 70%;"></div><div class="bar-label">Apr</div></div>
-                    <div class="bar-col"><div class="bar" style="height: 66%;"></div><div class="bar-label">Mei</div></div>
-                    <div class="bar-col"><div class="bar" style="height: 86%;"></div><div class="bar-label">Jun</div></div>
+
+            <div class="panel-body d-flex flex-column justify-content-between">
+                {{-- Legend ringkas --}}
+                <div class="d-flex align-items-center justify-content-end gap-3 mb-2 small text-muted">
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <span style="width: 10px; height: 10px; border-radius: 2px; background: linear-gradient(180deg, #93c5fd 0%, #2563eb 100%);"></span>
+                        Aktivitas Platform
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <span style="width: 10px; height: 10px; border-radius: 2px; background: #e2e8f0;"></span>
+                        Nol (0)
+                    </span>
+                </div>
+
+                {{-- Bar Chart 12 Bulan --}}
+                <div class="bar-chart" id="dashboardBarChart">
+                    @foreach($monthlyTrend as $m)
+                        <div class="bar-col position-relative" 
+                             data-month="{{ $m['month'] }}"
+                             data-bs-toggle="tooltip" 
+                             data-bs-placement="top" 
+                             data-bs-html="true"
+                             title="<div class='text-start'><strong>{{ $m['full'] }} {{ $selectedYear }}</strong><br><span class='badge bg-light text-dark mb-1'>Total: {{ $m['total'] }} Aktivitas</span><br>&bull; Event: {{ $m['events'] }}<br>&bull; Club: {{ $m['clubs'] }}<br>&bull; User: {{ $m['users'] }}<br>&bull; Produk: {{ $m['products'] }}</div>">
+                            
+                            {{-- Angka Total Di Atas Batang --}}
+                            <span class="bar-val">
+                                {{ $m['total'] > 0 ? $m['total'] : '' }}
+                            </span>
+
+                            {{-- Batang Grafik --}}
+                            <div class="bar {{ $m['total'] === 0 ? 'bar-empty' : '' }} {{ $m['is_current'] ? 'bar-current' : '' }}" 
+                                 style="height: {{ $m['height'] }}%;">
+                            </div>
+
+                            {{-- Label Singkatan Bulan --}}
+                            <div class="bar-label {{ $m['is_current'] ? 'fw-bold text-primary' : '' }}">
+                                {{ $m['short'] }}
+                                @if($m['is_current'])
+                                    <span class="current-dot" style="display: block; width: 4px; height: 4px; background: #2563eb; border-radius: 50%; margin: 2px auto 0;"></span>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -827,6 +900,129 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const modal = new bootstrap.Modal(document.getElementById('modalDetailClub'));
             modal.show();
+        });
+    });
+
+    // --- ACTIVITY TREND TOOLTIPS & YEAR SWITCHER ---
+    let trendTooltips = [];
+    function initTrendTooltips() {
+        trendTooltips.forEach(t => t.dispose());
+        trendTooltips = [];
+        const tooltipElements = document.querySelectorAll('#dashboardBarChart [data-bs-toggle="tooltip"]');
+        tooltipElements.forEach(el => {
+            trendTooltips.push(new bootstrap.Tooltip(el));
+        });
+    }
+    initTrendTooltips();
+
+    const yearSelect = document.getElementById('dashboardYearSelect');
+    const yearForm = document.getElementById('yearFilterForm');
+    const trendBadge = document.getElementById('trendYearBadge');
+    const barChartContainer = document.getElementById('dashboardBarChart');
+    const btnYearNavs = document.querySelectorAll('.btn-year-nav');
+
+    function loadYearData(targetYear) {
+        if (!targetYear) return;
+        
+        const url = new URL('{{ route('admin.dashboard') }}', window.location.origin);
+        url.searchParams.set('year', targetYear);
+        url.searchParams.set('ajax', '1');
+        const currentSearch = new URLSearchParams(window.location.search).get('search') || new URLSearchParams(window.location.search).get('q');
+        if (currentSearch) url.searchParams.set('search', currentSearch);
+
+        if (barChartContainer) barChartContainer.style.opacity = '0.5';
+
+        fetch(url.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Network error');
+            return res.json();
+        })
+        .then(data => {
+            if (barChartContainer) barChartContainer.style.opacity = '1';
+
+            if (trendBadge) {
+                trendBadge.innerHTML = `Tahun ${data.selectedYear} &bull; ${data.yearTotalActivity} Aktivitas`;
+            }
+
+            if (yearSelect) {
+                let optionExists = false;
+                for (let i = 0; i < yearSelect.options.length; i++) {
+                    if (parseInt(yearSelect.options[i].value) === parseInt(data.selectedYear)) {
+                        yearSelect.selectedIndex = i;
+                        optionExists = true;
+                        break;
+                    }
+                }
+                if (!optionExists) {
+                    const newOpt = new Option(data.selectedYear, data.selectedYear, true, true);
+                    yearSelect.add(newOpt);
+                }
+            }
+
+            btnYearNavs.forEach(btn => {
+                const isPrev = btn.querySelector('.bi-chevron-left');
+                const nextYear = isPrev ? parseInt(data.selectedYear) - 1 : parseInt(data.selectedYear) + 1;
+                btn.dataset.year = nextYear;
+                btn.title = isPrev ? `Tahun Sebelumnya (${nextYear})` : `Tahun Berikutnya (${nextYear})`;
+                const btnUrl = new URL(btn.href, window.location.origin);
+                btnUrl.searchParams.set('year', nextYear);
+                btn.href = btnUrl.toString();
+            });
+
+            if (barChartContainer && data.monthlyTrend) {
+                let html = '';
+                data.monthlyTrend.forEach(m => {
+                    const tooltipContent = `<div class='text-start'><strong>${m.full} ${data.selectedYear}</strong><br><span class='badge bg-light text-dark mb-1'>Total: ${m.total} Aktivitas</span><br>&bull; Event: ${m.events}<br>&bull; Club: ${m.clubs}<br>&bull; User: ${m.users}<br>&bull; Produk: ${m.products}</div>`;
+                    const emptyClass = m.total === 0 ? 'bar-empty' : '';
+                    const currentClass = m.is_current ? 'bar-current' : '';
+                    const labelClass = m.is_current ? 'fw-bold text-primary' : '';
+                    const dotHtml = m.is_current ? '<span class="current-dot" style="display: block; width: 4px; height: 4px; background: #2563eb; border-radius: 50%; margin: 2px auto 0;"></span>' : '';
+                    const valText = m.total > 0 ? m.total : '';
+
+                    html += `
+                        <div class="bar-col position-relative" 
+                             data-month="${m.month}"
+                             data-bs-toggle="tooltip" 
+                             data-bs-placement="top" 
+                             data-bs-html="true"
+                             title="${tooltipContent.replace(/"/g, '&quot;')}">
+                            <span class="bar-val">${valText}</span>
+                            <div class="bar ${emptyClass} ${currentClass}" style="height: ${m.height}%;"></div>
+                            <div class="bar-label ${labelClass}">
+                                ${m.short}
+                                ${dotHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+                barChartContainer.innerHTML = html;
+                initTrendTooltips();
+            }
+
+            const pageUrl = new URL(window.location.href);
+            pageUrl.searchParams.set('year', data.selectedYear);
+            window.history.pushState({ year: data.selectedYear }, '', pageUrl.toString());
+        })
+        .catch(() => {
+            if (yearForm) yearForm.submit();
+        });
+    }
+
+    if (yearSelect) {
+        yearSelect.addEventListener('change', function() {
+            loadYearData(this.value);
+        });
+    }
+
+    btnYearNavs.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadYearData(this.dataset.year);
         });
     });
 });

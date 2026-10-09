@@ -29,17 +29,23 @@ class clubSeeder extends Seeder
         $clubLogoDir = storage_path('app/public/club_logos');
         File::ensureDirectoryExists($clubLogoDir);
 
+        $publicClubLogoDir = public_path('storage/club_logos');
+        File::ensureDirectoryExists($publicClubLogoDir);
+
         $defaultLogoSrc = public_path('img/balnkLogo.png');
         if (File::exists($defaultLogoSrc)) {
             File::copy($defaultLogoSrc, storage_path('app/public/default_club.png'));
             File::copy($defaultLogoSrc, $clubLogoDir . DIRECTORY_SEPARATOR . 'default_club.png');
+            File::copy($defaultLogoSrc, $publicClubLogoDir . DIRECTORY_SEPARATOR . 'default_club.png');
         }
 
-        // Salin logo SLAM Commando jika ada berkas aslinya
-        $slamOriginal = $clubLogoDir . DIRECTORY_SEPARATOR . 'g8NhOP7QCxApcUtI5wOwt4YIaakqHW1tCoGDV0QR.jpg';
-        $slamTarget = $clubLogoDir . DIRECTORY_SEPARATOR . 'slam_commando.jpg';
-        if (File::exists($slamOriginal) && !File::exists($slamTarget)) {
-            File::copy($slamOriginal, $slamTarget);
+        // Sinkronisasi berkas logo dari backup public/img/club_logos ke storage
+        $backupDir = public_path('img/club_logos');
+        if (File::isDirectory($backupDir)) {
+            foreach (File::files($backupDir) as $file) {
+                File::copy($file->getPathname(), $clubLogoDir . DIRECTORY_SEPARATOR . $file->getFilename());
+                File::copy($file->getPathname(), $publicClubLogoDir . DIRECTORY_SEPARATOR . $file->getFilename());
+            }
         }
 
         // 3. Bersihkan data club lama sebelum seeding
@@ -47,9 +53,9 @@ class clubSeeder extends Seeder
 
         // 4. Ambil user untuk dijadikan pemilik club
         $users = User::all();
-        $userCount = $users->count();
+        $userCount = max(1, $users->count());
 
-        // 5. Seed daftar club airsoft ternama di Indonesia
+        // 5. Seed tepat 6 club airsoft dengan logo resmi
         foreach (clubFactory::indonesianClubs() as $index => $clubData) {
             $provinsi = Provinsi::where('provinsi', 'like', '%' . $clubData['provinsi_nama'] . '%')->first();
             $assignedUser = $users[$index % $userCount];

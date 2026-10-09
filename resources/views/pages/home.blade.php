@@ -214,4 +214,45 @@
             @endforelse
         </div>
     </div>
+
+    {{-- Bagian Marketplace --}}
+    @php
+        $marketplaces = $marketplaces ?? \App\Models\Marketplace::where('status', 'diterima')->with('user')->withCount('products')->latest()->take(6)->get();
+    @endphp
+    <div class="container-xxl mt-5 mb-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <p class="fs-3 mb-0 home-section-title">{{ __('Marketplace') }}</p>
+            <a href="{{ route('marketplace') }}" class="btn btn-outline-primary btn-sm home-more-link">Selengkapnya <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        <div class="row justify-content-center g-2">
+            @forelse($marketplaces as $market)
+                <div class="col-auto mb-2">
+                    <a href="{{ route('market', $market->id) }}" class="text-decoration-none text-dark">
+                        <div class="card h-100" style="width: 13rem;">
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                                <img src="{{ $market?->logo_url ?? asset('img/balnkLogo.png') }}" alt="{{ $market->nama }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('img/balnkLogo.png') }}'">
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title fw-bold text-truncate" title="{{ $market->nama }}">{{ $market->nama }}</h5>
+                                <ul class="list-unstyled small mb-0">
+                                    <li class="mb-1">
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-geo-alt" aria-hidden="true"></i></span>
+                                        <span class="text-muted">{{ $market->user?->city ?? 'Indonesia' }}</span>
+                                    </li>
+                                    <li>
+                                        <span class="d-inline-flex align-items-center justify-content-center rounded bg-light text-muted me-1" style="width: 24px; height: 24px;"><i class="bi bi-shop" aria-hidden="true"></i></span>
+                                        <span class="text-muted">{{ $market->products_count ?? $market->products()->count() }} {{ __('Produk') }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            @empty
+                <div class="col-12 text-center text-muted py-5">
+                    <p>{{ __('No marketplace available') }}</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
 @endsection

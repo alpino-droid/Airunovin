@@ -15,15 +15,155 @@ use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $events = event::with('user')->orderBy('tanggal', 'desc')->get();
-        $clubs  = Club::with('user')->orderBy('created_at', 'desc')->get();
+        $eventQuery = event::with('user');
+        $clubQuery = Club::with('user');
+
+        if ($request->filled('search') || $request->filled('q')) {
+            $s = trim((string) ($request->input('search') ?? $request->input('q')));
+            $eventQuery->where(function ($q) use ($s) {
+                $q->where('nama', 'like', "%{$s}%")
+                  ->orWhere('kota', 'like', "%{$s}%")
+                  ->orWhere('penyelenggara', 'like', "%{$s}%");
+            });
+            $clubQuery->where(function ($q) use ($s) {
+                $q->where('nama', 'like', "%{$s}%")
+                  ->orWhere('city', 'like', "%{$s}%")
+                  ->orWhere('induk_organisasi', 'like', "%{$s}%");
+            });
+        }
+
+        $events = $eventQuery->orderBy('tanggal', 'desc')->get();
+        $clubs  = $clubQuery->orderBy('created_at', 'desc')->get();
         $provinsi = Provinsi::orderBy('provinsi')->get();
         $totalUsers = User::count();
         $totalProducts = Product::count();
 
-        return view('admin.dashboard', compact('events', 'clubs', 'provinsi', 'totalUsers', 'totalProducts'));
+        // ==========================================
+        // TREN AKTIVITAS 12 BULAN & PEMILIHAN TAHUN
+        // ==========================================
+        $currentYear = (int) date('Y');
+        $selectedYear = (int) $request->input('year', $currentYear);
+        if ($selectedYear < 2000 || $selectedYear > 2100) {
+            $selectedYear = $currentYear;
+        }
+
+        // Tentukan daftar tahun yang tersedia
+        $yearsInDb = collect()
+            ->merge(event::selectRaw('YEAR(tanggal) as y')->whereNotNull('tanggal')->pluck('y'))
+            ->merge(event::selectRaw('YEAR(created_at) as y')->whereNotNull('created_at')->pluck('y'))
+            ->merge(Club::selectRaw('YEAR(created_at) as y')->whereNotNull('created_at')->pluck('y'))
+            ->merge(User::selectRaw('YEAR(created_at) as y')->whereNotNull('created_at')->pluck('y'))
+            ->merge(Product::selectRaw('YEAR(created_at) as y')->whereNotNull('created_at')->pluck('y'))
+            ->filter(fn($y) => $y >= 2000 && $y <= 2100)
+            ->map(fn($y) => (int) $y)
+            ->unique();
+
+        $minYear = $yearsInDb->min() ? min($yearsInDb->min(), $currentYear - 2) : ($currentYear - 2);
+        $maxYear = $yearsInDb->max() ? max($yearsInDb->max(), $currentYear + 2) : ($currentYear + 2);
+        $availableYears = range($minYear, $maxYear);
+
+        // Agregasi aktivitas 12 bulan untuk tahun yang dipilih
+        $monthNames = [
+            1 => ['short' => 'Jan', 'full' => 'Januari'],
+            2 => ['short' => 'Feb', 'full' => 'Februari'],
+            3 => ['short' => 'Mar', 'full' => 'Maret'],
+            4 => ['short' => 'Apr', 'full' => 'April'],
+            5 => ['short' => 'Mei', 'full' => 'Mei'],
+            6 => ['short' => 'Jun', 'full' => 'Juni'],
+            7 => ['short' => 'Jul', 'full' => 'Juli'],
+            8 => ['short' => 'Agu', 'full' => 'Agustus'],
+            9 => ['short' => 'Sep', 'full' => 'September'],
+            10 => ['short' => 'Okt', 'full' => 'Oktober'],
+            11 => ['short' => 'Nov', 'full' => 'November'],
+            12 => ['short' => 'Des', 'full' => 'Desember'],
+        ];
+
+        // Query data aktivitas per bulan
+        $eventsActive = event::where(function($q) use ($selectedYear) {
+                $q->whereYear('tanggal', $selectedYear)
+                  ->orWhereYear('created_at', $selectedYear);
+            })
+            ->get(['id', 'tanggal', 'created_at']);
+
+        $clubsByMonth = Club::whereYear('created_at', $selectedYear)
+            ->selectRaw('MONTH(created_at) as m, count(*) as c')
+            ->groupBy('m')
+            ->pluck('c', 'm')
+            ->toArray();
+
+        $usersByMonth = User::whereYear('created_at', $selectedYear)
+            ->selectRaw('MONTH(created_at) as m, count(*) as c')
+            ->groupBy('m')
+            ->pluck('c', 'm')
+            ->toArray();
+
+        $productsByMonth = Product::whereYear('created_at', $selectedYear)
+            ->selectRaw('MONTH(created_at) as m, count(*) as c')
+            ->groupBy('m')
+            ->pluck('c', 'm')
+            ->toArray();
+
+        $monthlyTrend = [];
+        $currentMonth = (int) date('n');
+
+        for ($m = 1; $m <= 12; $m++) {
+            $eCount = $eventsActive->filter(function($ev) use ($selectedYear, $m) {
+                $hasTanggal = $ev->tanggal && date('Y', strtotime($ev->tanggal)) == $selectedYear && (int) date('n', strtotime($ev->tanggal)) === $m;
+                $hasCreated = $ev->created_at && (int)$ev->created_at->year === $selectedYear && (int)$ev->created_at->month === $m;
+                return $hasTanggal || $hasCreated;
+            })->count();
+
+            $cCount = (int) ($clubsByMonth[$m] ?? 0);
+            $uCount = (int) ($usersByMonth[$m] ?? 0);
+            $pCount = (int) ($productsByMonth[$m] ?? 0);
+            $total = $eCount + $cCount + $uCount + $pCount;
+
+            $monthlyTrend[$m] = [
+                'month' => $m,
+                'short' => $monthNames[$m]['short'],
+                'full' => $monthNames[$m]['full'],
+                'events' => $eCount,
+                'clubs' => $cCount,
+                'users' => $uCount,
+                'products' => $pCount,
+                'total' => $total,
+                'is_current' => ($selectedYear === $currentYear && $m === $currentMonth),
+            ];
+        }
+
+        $maxActivity = max(array_merge([1], array_column($monthlyTrend, 'total')));
+        foreach ($monthlyTrend as $m => &$item) {
+            $item['height'] = $item['total'] > 0 
+                ? max(14, min(100, (int) round(($item['total'] / $maxActivity) * 100))) 
+                : 4;
+        }
+        unset($item);
+
+        $yearTotalActivity = array_sum(array_column($monthlyTrend, 'total'));
+
+        // Jika request via AJAX / JSON untuk pergantian tahun instan
+        if ($request->ajax() || $request->wantsJson() || $request->has('ajax')) {
+            return response()->json([
+                'selectedYear' => $selectedYear,
+                'yearTotalActivity' => $yearTotalActivity,
+                'availableYears' => $availableYears,
+                'monthlyTrend' => array_values($monthlyTrend),
+            ]);
+        }
+
+        return view('admin.dashboard', compact(
+            'events', 
+            'clubs', 
+            'provinsi', 
+            'totalUsers', 
+            'totalProducts',
+            'availableYears',
+            'selectedYear',
+            'monthlyTrend',
+            'yearTotalActivity'
+        ));
     }
 
     // ==========================================
@@ -379,6 +519,14 @@ class AdminController extends Controller
         if ($request->filled('city')) {
             $query->where('city', $request->string('city'));
         }
+        if ($request->filled('search') || $request->filled('q')) {
+            $s = trim((string) ($request->input('search') ?? $request->input('q')));
+            $query->where(function ($q) use ($s) {
+                $q->where('nama', 'like', "%{$s}%")
+                  ->orWhere('city', 'like', "%{$s}%")
+                  ->orWhere('induk_organisasi', 'like', "%{$s}%");
+            });
+        }
 
         $clubs = $query->orderBy('created_at', 'desc')->get();
         $users = User::all();
@@ -387,34 +535,79 @@ class AdminController extends Controller
         return view('admin.club', compact('clubs', 'provinsi', 'users', 'cities'));
     }
 
-    public function event()
+    public function event(Request $request)
     {
-        $events = event::with('user')->orderBy('tanggal', 'desc')->get();
+        $query = event::with('user');
+
+        if ($request->filled('search') || $request->filled('q')) {
+            $s = trim((string) ($request->input('search') ?? $request->input('q')));
+            $query->where(function ($q) use ($s) {
+                $q->where('nama', 'like', "%{$s}%")
+                  ->orWhere('kota', 'like', "%{$s}%")
+                  ->orWhere('penyelenggara', 'like', "%{$s}%");
+            });
+        }
+
+        $events = $query->orderBy('tanggal', 'desc')->get();
         $provinsi = Provinsi::orderBy('provinsi')->get();
 
         return view('admin.event', compact('events', 'provinsi'));
     }
 
-    public function marketplace()
+    public function marketplace(Request $request)
     {
-        $marketplaces = Marketplace::with('user')->withCount('products')->orderBy('created_at', 'desc')->get();
+        $query = Marketplace::with('user')->withCount('products');
+
+        if ($request->filled('search') || $request->filled('q')) {
+            $s = trim((string) ($request->input('search') ?? $request->input('q')));
+            $query->where(function ($q) use ($s) {
+                $q->where('nama', 'like', "%{$s}%")
+                  ->orWhere('deskripsi', 'like', "%{$s}%");
+            });
+        }
+
+        $marketplaces = $query->orderBy('created_at', 'desc')->get();
         $users = User::orderBy('nama')->get();
 
         return view('admin.marketplace', compact('marketplaces', 'users'));
     }
 
-    public function product()
+    public function product(Request $request)
     {
-        $products = Product::with(['user', 'marketplace'])->orderBy('created_at', 'desc')->get();
+        $query = Product::with(['user', 'marketplace']);
+
+        if ($request->filled('search') || $request->filled('q')) {
+            $s = trim((string) ($request->input('search') ?? $request->input('q')));
+            $query->where(function ($q) use ($s) {
+                $q->where('nama', 'like', "%{$s}%")
+                  ->orWhere('merk', 'like', "%{$s}%")
+                  ->orWhere('jenis', 'like', "%{$s}%")
+                  ->orWhere('lokasi', 'like', "%{$s}%");
+            });
+        }
+
+        $products = $query->orderBy('created_at', 'desc')->get();
         $marketplaces = Marketplace::orderBy('nama')->get();
         $users = User::orderBy('nama')->get();
 
         return view('admin.product', compact('products', 'marketplaces', 'users'));
     }
 
-    public function registrasi()
+    public function registrasi(Request $request)
     {
-        $users = User::orderBy('created_at', 'desc')->get();
+        $query = User::query();
+
+        if ($request->filled('search') || $request->filled('q')) {
+            $s = trim((string) ($request->input('search') ?? $request->input('q')));
+            $query->where(function ($q) use ($s) {
+                $q->where('nama', 'like', "%{$s}%")
+                  ->orWhere('username', 'like', "%{$s}%")
+                  ->orWhere('email', 'like', "%{$s}%")
+                  ->orWhere('phone', 'like', "%{$s}%");
+            });
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->get();
         return view('admin.registrasi', compact('users'));
     }
 
@@ -540,5 +733,277 @@ class AdminController extends Controller
 
         $label = $request->status === 'diterima' ? 'diterima (disetujui)' : ($request->status === 'tolak' ? 'ditolak' : 'diubah menjadi pending');
         return redirect()->back()->with('success', "Produk '{$product->nama}' berhasil {$label}!");
+    }
+
+    // ==========================================
+    // MESIN PENCARIAN ADMIN (SMART ADMIN ROUTER)
+    // ==========================================
+    public function adminSearch(Request $request)
+    {
+        $q = trim((string) ($request->input('q') ?? $request->input('search') ?? ''));
+
+        if ($q === '') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        $lower = strtolower($q);
+
+        // 1. Kamus Kata Kunci Niat (Explicit Intent Keywords)
+        $eventKeywords = [
+            'event', 'acara', 'turnamen', 'tournament', 'lomba', 'kompetisi', 'competition',
+            'cup', 'championship', 'tanding', 'skirmish', 'milsim', 'gathering', 'gath',
+            'jadwal', 'tiket', 'htm', 'walikota', 'bupati', 'gubernur', 'challenge', 'piala'
+        ];
+
+        $clubKeywords = [
+            'club', 'klub', 'komunitas', 'community', 'team', 'tim', 'squad', 'regiment',
+            'divisi', 'batalyon', 'roster', 'organisasi', 'fai', 'porgasi', 'inassoc', 'inasoc',
+            'airsofter', 'anggota', 'member', 'brotherhood', 'troops', 'troopers'
+        ];
+
+        $marketKeywords = [
+            'marketplace', 'market', 'toko', 'shop', 'store', 'seller', 'lapak', 'penjual'
+        ];
+
+        $productKeywords = [
+            'produk', 'product', 'beli', 'jual', 'harga', 'stok', 'unit', 'sparepart', 'part', 'aksesoris', 'aksesori',
+            'kondisi', 'baru', 'bekas', 'second', 'rifle', 'shootgun', 'shotgun', 'macinegun',
+            'machinegun', 'sniper', 'handgun', 'pistol', 'aeg', 'gbb', 'gbbr', 'spring', 'co2',
+            'inbar', 'gearbox', 'hopup', 'hop up', 'scope', 'red dot', 'vest', 'mag', 'magazine',
+            'bb', 'patch', 'tactical', 'helm', 'kacamata', 'goggle', 'holster', 'sling'
+        ];
+
+        $userKeywords = [
+            'user', 'pengguna', 'member', 'registrasi', 'pendaftar', 'akun', 'profil', 'email'
+        ];
+
+        $eventScore = 0;
+        $clubScore = 0;
+        $marketScore = 0;
+        $productScore = 0;
+        $userScore = 0;
+
+        foreach ($eventKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $lower)) {
+                $eventScore += 100;
+            }
+        }
+
+        foreach ($clubKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $lower)) {
+                $clubScore += 100;
+            }
+        }
+
+        foreach ($marketKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $lower)) {
+                $marketScore += 100;
+            }
+        }
+
+        foreach ($productKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $lower)) {
+                $productScore += 100;
+            }
+        }
+
+        foreach ($userKeywords as $kw) {
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $lower)) {
+                $userScore += 100;
+            }
+        }
+
+        // 2. Cek Kecocokan Data Aktual di Database (Admin melihat seluruh data)
+        $stopWords = ['airsoft', 'airsoftgun', 'gun', 'dan', 'di', 'ke', 'dari', 'yang', 'untuk', 'pada'];
+        $rawTerms = array_filter(explode(' ', $lower), fn($t) => strlen($t) >= 2);
+        $significantTerms = array_values(array_diff($rawTerms, $stopWords));
+
+        // A. Event DB Matches
+        $eventExact = event::where('nama', 'like', "%{$q}%")->count();
+        $eventTermMatches = 0;
+        if (!empty($significantTerms)) {
+            $eventTermMatches = event::where(function ($sub) use ($significantTerms) {
+                foreach ($significantTerms as $t) {
+                    $sub->orWhere('nama', 'like', "%{$t}%")
+                        ->orWhere('kota', 'like', "%{$t}%")
+                        ->orWhere('penyelenggara', 'like', "%{$t}%");
+                }
+            })->count();
+        }
+        $eventScore += ($eventExact * 80) + ($eventTermMatches * 25);
+
+        // B. Club DB Matches
+        $clubExact = Club::where('nama', 'like', "%{$q}%")->count();
+        $clubTermMatches = 0;
+        if (!empty($significantTerms)) {
+            $clubTermMatches = Club::where(function ($sub) use ($significantTerms) {
+                foreach ($significantTerms as $t) {
+                    $sub->orWhere('nama', 'like', "%{$t}%")
+                        ->orWhere('city', 'like', "%{$t}%")
+                        ->orWhere('induk_organisasi', 'like', "%{$t}%");
+                }
+            })->count();
+        }
+        $clubScore += ($clubExact * 80) + ($clubTermMatches * 25);
+
+        // C. Marketplace DB Matches
+        $marketExact = Marketplace::where('nama', 'like', "%{$q}%")->count();
+        $marketScore += ($marketExact * 80);
+
+        // D. Product DB Matches
+        $productExact = Product::where('nama', 'like', "%{$q}%")->count();
+        $productTermMatches = 0;
+        if (!empty($significantTerms)) {
+            $productTermMatches = Product::where(function ($sub) use ($significantTerms) {
+                foreach ($significantTerms as $t) {
+                    $sub->orWhere('nama', 'like', "%{$t}%")
+                        ->orWhere('merk', 'like', "%{$t}%")
+                        ->orWhere('unit', 'like', "%{$t}%")
+                        ->orWhere('sparepart', 'like', "%{$t}%")
+                        ->orWhere('aksesoris', 'like', "%{$t}%");
+                }
+            })->count();
+        }
+        $productScore += ($productExact * 80) + ($productTermMatches * 25);
+
+        // E. User DB Matches
+        $userExact = User::where('nama', 'like', "%{$q}%")
+            ->orWhere('email', 'like', "%{$q}%")
+            ->orWhere('username', 'like', "%{$q}%")
+            ->count();
+        $userScore += ($userExact * 80);
+
+        // Bersihkan awalan kata pengenal kategori
+        $cleanSearch = $q;
+        $cleanSearch = preg_replace('/^(event|acara|turnamen|lomba)\s+/i', '', $cleanSearch);
+        $cleanSearch = preg_replace('/^(club|klub|komunitas)\s+/i', '', $cleanSearch);
+        $cleanSearch = preg_replace('/^(marketplace|market|toko)\s+/i', '', $cleanSearch);
+        $cleanSearch = preg_replace('/^(produk|product|barang)\s+/i', '', $cleanSearch);
+        $cleanSearch = preg_replace('/^(user|pengguna|member|registrasi|pendaftar)\s+/i', '', $cleanSearch);
+        $cleanSearch = trim($cleanSearch);
+        $searchTerm = !empty($cleanSearch) ? $cleanSearch : $q;
+
+        // 3. Evaluasi Skor dan Alihkan Antar Halaman Admin
+        $scores = [
+            'event' => $eventScore,
+            'club' => $clubScore,
+            'product' => $productScore,
+            'marketplace' => $marketScore,
+            'registrasi' => $userScore,
+        ];
+
+        arsort($scores);
+        $topCategory = array_key_first($scores);
+        $topScore = $scores[$topCategory];
+
+        if ($topScore > 0) {
+            return match ($topCategory) {
+                'event' => redirect()->route('admin.event', ['search' => $searchTerm]),
+                'club' => redirect()->route('admin.club', ['search' => $searchTerm]),
+                'product' => redirect()->route('admin.product', ['search' => $searchTerm]),
+                'marketplace' => redirect()->route('admin.marketplace', ['search' => $searchTerm]),
+                'registrasi' => redirect()->route('admin.registrasi', ['search' => $searchTerm]),
+                default => redirect()->route('admin.event', ['search' => $searchTerm]),
+            };
+        }
+
+        // Standar jika tidak ada kategori spesifik: bawa ke admin event dengan filter
+        return redirect()->route('admin.event', ['search' => $searchTerm]);
+    }
+
+    /**
+     * Live search suggestion khusus admin
+     */
+    public function searchSuggest(Request $request)
+    {
+        $q = trim((string) ($request->input('q') ?? ''));
+        if (strlen($q) < 2) {
+            return response()->json([
+                'events' => [],
+                'clubs' => [],
+                'marketplaces' => [],
+                'products' => [],
+                'users' => []
+            ]);
+        }
+
+        $events = event::where(function ($query) use ($q) {
+                $query->where('nama', 'like', "%{$q}%")
+                      ->orWhere('kota', 'like', "%{$q}%");
+            })
+            ->take(3)
+            ->get(['id', 'nama', 'kota', 'status'])
+            ->map(fn($e) => [
+                'type' => 'event',
+                'title' => $e->nama,
+                'sub' => $e->kota . ' • Status: ' . $e->status,
+                'url' => route('admin.event', ['search' => $e->nama]),
+                'icon' => 'bi-calendar-event'
+            ]);
+
+        $clubs = Club::where(function ($query) use ($q) {
+                $query->where('nama', 'like', "%{$q}%")
+                      ->orWhere('city', 'like', "%{$q}%");
+            })
+            ->take(3)
+            ->get(['id', 'nama', 'city', 'status'])
+            ->map(fn($c) => [
+                'type' => 'club',
+                'title' => $c->nama,
+                'sub' => $c->city . ' • Status: ' . $c->status,
+                'url' => route('admin.club', ['search' => $c->nama]),
+                'icon' => 'bi-shield-shaded'
+            ]);
+
+        $marketplaces = Marketplace::where(function ($query) use ($q) {
+                $query->where('nama', 'like', "%{$q}%")
+                      ->orWhere('deskripsi', 'like', "%{$q}%");
+            })
+            ->take(3)
+            ->get(['id', 'nama', 'status'])
+            ->map(fn($m) => [
+                'type' => 'marketplace',
+                'title' => $m->nama,
+                'sub' => 'Toko • Status: ' . $m->status,
+                'url' => route('admin.marketplace', ['search' => $m->nama]),
+                'icon' => 'bi-shop'
+            ]);
+
+        $products = Product::where(function ($query) use ($q) {
+                $query->where('nama', 'like', "%{$q}%")
+                      ->orWhere('merk', 'like', "%{$q}%");
+            })
+            ->take(3)
+            ->get(['id', 'nama', 'harga', 'status'])
+            ->map(fn($p) => [
+                'type' => 'product',
+                'title' => $p->nama,
+                'sub' => 'Rp ' . number_format($p->harga, 0, ',', '.') . ' • Status: ' . $p->status,
+                'url' => route('admin.product', ['search' => $p->nama]),
+                'icon' => 'bi-box-seam'
+            ]);
+
+        $users = User::where(function ($query) use ($q) {
+                $query->where('nama', 'like', "%{$q}%")
+                      ->orWhere('email', 'like', "%{$q}%")
+                      ->orWhere('username', 'like', "%{$q}%");
+            })
+            ->take(3)
+            ->get(['id', 'nama', 'email'])
+            ->map(fn($u) => [
+                'type' => 'user',
+                'title' => $u->nama,
+                'sub' => $u->email,
+                'url' => route('admin.registrasi', ['search' => $u->nama]),
+                'icon' => 'bi-person'
+            ]);
+
+        return response()->json([
+            'events' => $events,
+            'clubs' => $clubs,
+            'marketplaces' => $marketplaces,
+            'products' => $products,
+            'users' => $users,
+        ]);
     }
 }

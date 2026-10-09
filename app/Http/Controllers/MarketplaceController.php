@@ -147,9 +147,17 @@ class MarketplaceController extends Controller
 
     public function store(Request $request)
     {
-        $marketplace = Marketplace::create($this->validatedData($request) + [
+        $data = $this->validatedData($request);
+        $alamat = $data['alamat'] ?? null;
+        unset($data['alamat']);
+
+        $marketplace = Marketplace::create($data + [
             'id_user' => Auth::id(),
         ]);
+
+        if ($request->has('alamat') && Auth::check()) {
+            Auth::user()->update(['alamat' => $alamat]);
+        }
 
         return redirect()->route('dashboardMarketplace')->with('success', 'Marketplace berhasil dibuat.');
     }
@@ -165,6 +173,8 @@ class MarketplaceController extends Controller
     {
         $this->ensureOwner($marketplace);
         $data = $this->validatedData($request);
+        $alamat = $data['alamat'] ?? null;
+        unset($data['alamat']);
 
         if ($request->hasFile('logo')) {
             $this->deleteLogo($marketplace);
@@ -173,6 +183,10 @@ class MarketplaceController extends Controller
         }
 
         $marketplace->update($data);
+
+        if ($request->has('alamat') && Auth::check()) {
+            Auth::user()->update(['alamat' => $alamat]);
+        }
 
         return redirect()->route('dashboardMarketplace')->with('success', 'Marketplace berhasil diperbarui.');
     }
@@ -191,6 +205,7 @@ class MarketplaceController extends Controller
         $data = $request->validate([
             'nama' => 'required|string|max:255',
             'deskripsi' => 'nullable|string|max:1000',
+            'alamat' => 'nullable|string|max:1000',
             'status' => 'nullable|in:panding,tolak,diterima,terimakasih,active,inactive',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
